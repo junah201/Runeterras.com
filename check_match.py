@@ -24,7 +24,7 @@ def lambda_handler(event, context):
                 "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                 "X-Riot-Token": RIOT_API_KEY,
             },
-            timeout=5
+            timeout=3
         )
 
         if res.status_code != 200:
@@ -39,6 +39,7 @@ def lambda_handler(event, context):
 
         for match_id in match_ids:
             if match_id == db_master_player.last_matched_game_id:
+                print("Already checked")
                 break
 
             print("match_id", match_id)
@@ -50,7 +51,7 @@ def lambda_handler(event, context):
                     "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                     "X-Riot-Token": RIOT_API_KEY,
                 },
-                timeout=5
+                timeout=3
             )
 
             if match_res.status_code != 200:
@@ -81,7 +82,7 @@ def lambda_handler(event, context):
                         "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                         "X-Riot-Token": RIOT_API_KEY,
                     },
-                    timeout=5
+                    timeout=3
                 )
                 account_data = account_res.json()
 
