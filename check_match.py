@@ -23,7 +23,8 @@ def lambda_handler(event, context):
                 "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
                 "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                 "X-Riot-Token": RIOT_API_KEY,
-            }
+            },
+            timeout=5
         )
 
         if res.status_code != 200:
@@ -48,7 +49,8 @@ def lambda_handler(event, context):
                     "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
                     "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                     "X-Riot-Token": RIOT_API_KEY,
-                }
+                },
+                timeout=5
             )
 
             if match_res.status_code != 200:
@@ -78,7 +80,8 @@ def lambda_handler(event, context):
                         "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
                         "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                         "X-Riot-Token": RIOT_API_KEY,
-                    }
+                    },
+                    timeout=5
                 )
                 account_data = account_res.json()
 
@@ -87,6 +90,8 @@ def lambda_handler(event, context):
                     models.Player.game_name == account_data["gameName"], models.Player.puuid == None).first()
 
                 if db_new_player:
+                    print("update", db_new_player.game_name, puuid)
+
                     db_new_player.puuid = puuid
                     db_new_player.game_name = account_data["gameName"]
                     db_new_player.tag_line = account_data["tagLine"]
@@ -95,6 +100,7 @@ def lambda_handler(event, context):
                     continue
 
                 # 상대가 DB에 아예 없으면 (다이아)
+                print("new", account_data["gameName"], puuid)
                 db_new_player = models.Player(
                     puuid=puuid,
                     game_name=account_data["gameName"],
