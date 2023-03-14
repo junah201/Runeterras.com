@@ -73,9 +73,11 @@ def lambda_handler(event, context):
                     continue
 
                 # 이미 DB에 수집된 puuid인지 확인
-                if print(db.query(literal(True)).filter(db.query(models.Player).filter(
+                is_collected = db.query(literal(True)).filter(db.query(models.Player).filter(
                     models.Player.puuid == puuid
-                ).exists()).scalar()):
+                ).exists()).scalar()
+                print(is_collected)
+                if is_collected == True:
                     continue
 
                 account_res = requests.get(
