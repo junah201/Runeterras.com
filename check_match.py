@@ -5,17 +5,31 @@ import database
 from typing import List, Optional
 from sqlalchemy.sql import exists
 from sqlalchemy import literal
+from datetime import datetime
 
 RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
+DISCORD_WEBHOOKS_CHECK_MATCH_LOG = os.environ.get(
+    "DISCORD_WEBHOOKS_CHECK_MATCH_LOG")
 
 
-def lambda_handler(event, context):
+def check_match():
+    log = {
+        "start": datetime.now().isoformat(),
+        "total checked": 0,
+        "new players": [],
+        "updated players": [],
+        "new ranked matches": 0,
+        "end": None,
+        "rate limit": False,
+    }
+
     db = database.get_db()
 
     db_master_players_puuid: List[models.Player] = db.query(
-        models.Player).filter(models.Player.is_master == True, models.Player.puuid != None).all()
+        models.Player).filter(models.Player.is_master == True, models.Player.puuid != None).order_by(models.Player.last_matched_at.desc()).all()
 
     for db_master_player in db_master_players_puuid:
+        log["total checked"] += 1
         print("start", db_master_player.puuid)
         res = requests.get(
             f"https://apac.api.riotgames.com/lor/match/v1/matches/by-puuid/{db_master_player.puuid}/ids",
@@ -29,11 +43,16 @@ def lambda_handler(event, context):
 
         if res.status_code != 200:
             print(res.text)
+            if res.status_code == 429:
+                print("Too many requests")
+                log["rate limit"] = True
+                return log
             continue
 
         match_ids = res.json()
 
         new_last_match_id: Optional[str] = None
+        new_last_matched_at = db_master_player.last_matched_at or datetime.min
         if match_ids:
             new_last_match_id = match_ids[0]
 
@@ -58,15 +77,19 @@ def lambda_handler(event, context):
                 print(match_res.text)
                 if match_res.status_code == 429:
                     print("Too many requests")
-                    return
+                    log["rate limit"] = True
+                    return log
                 continue
 
             match_data = match_res.json()
 
-            print(match_data["info"]["game_type"])
+            new_last_matched_at = max(new_last_matched_at, datetime.strptime(
+                match_data["info"]["game_start_time_utc"][:26], "%Y-%m-%dT%H:%M:%S.%f"))
 
             if match_data["info"]["game_type"] != "Ranked":
                 continue
+
+            log["new ranked matches"] += 1
 
             for puuid in match_data["metadata"]["participants"]:
                 if puuid == db_master_player.puuid:
@@ -103,6 +126,8 @@ def lambda_handler(event, context):
 
                 if db_new_player:
                     print("update", db_new_player.game_name, puuid)
+                    log["updated players"].append(
+                        f"**{db_new_player.game_name}**\n")
 
                     db_new_player.puuid = puuid
                     db_new_player.game_name = account_data["gameName"]
@@ -113,6 +138,8 @@ def lambda_handler(event, context):
 
                 # 상대가 DB에 아예 없으면 (다이아)
                 print("new", account_data["gameName"], puuid)
+                log["new players"].append(
+                    f"**{account_data['gameName']}**\n")
                 db_new_player = models.Player(
                     puuid=puuid,
                     game_name=account_data["gameName"],
@@ -123,7 +150,58 @@ def lambda_handler(event, context):
                 db.commit()
 
         db_master_player.last_matched_game_id = new_last_match_id
+        db_master_player.last_matched_at = new_last_matched_at
         db.commit()
         print("end", db_master_player.puuid)
 
     db.commit()
+    return log
+
+
+def lambda_handler(event, context):
+    log = check_match()
+    log["end"] = datetime.now().isoformat()
+
+    success_color = 0x2ECC71
+    error_color = 0xE74C3C
+
+    if log["rate limit"]:
+        color = error_color
+    else:
+        color = success_color
+
+    data = {
+        "content": "",
+        "embeds": [
+            {
+                "title": "매치 수집 로그",
+                "description": f"""
+                총 `{log["total checked"]}`명의 마스터 플레이어의 매치를 수집했습니다.
+
+                새로운 플레이어 `{len(log["new players"])}`명을 발견했습니다.
+                {"".join([f"`{player}`" for player in log["new players"]])}
+
+                기존 마스터 플레이어 `{len(log["updated players"])}`명의 puuid를 수집했습니다.
+                {"".join([f"`{player}`" for player in log["updated players"]])}
+
+                새로운 랭크 매치 `{log["new ranked matches"]}`개를 발견했습니다.
+
+                rate limit : `{log["rate limit"]}`
+
+                시작 : `{log["start"]}`
+                종료 : `{log["end"]}`
+                """,
+                "color": color,
+                "footer": {
+                    "text": str(log["start"])
+            }
+            }
+        ]
+    }
+
+    requests.post(
+        DISCORD_WEBHOOKS_CHECK_MATCH_LOG,
+        json=data
+    )
+
+    return log
