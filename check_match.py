@@ -14,7 +14,7 @@ DISCORD_WEBHOOKS_CHECK_MATCH_LOG = os.environ.get(
 
 def check_match():
     log = {
-        "start": datetime.now().isoformat(),
+        "start": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "total checked": 0,
         "new players": [],
         "updated players": [],
@@ -25,8 +25,9 @@ def check_match():
 
     db = database.get_db()
 
-    db_master_players_puuid: List[models.Player] = db.query(
-        models.Player).filter(models.Player.is_master == True, models.Player.puuid != None).order_by(models.Player.last_matched_at.desc()).all()
+    db_master_players_puuid: List[models.Player] = db.query(models.Player) \
+        .filter(models.Player.is_master == True, models.Player.puuid != None) \
+        .order_by(models.Player.last_checked_at.asc(), models.Player.last_matched_at.desc()).all()
 
     for db_master_player in db_master_players_puuid:
         log["total checked"] += 1
@@ -127,7 +128,7 @@ def check_match():
                 if db_new_player:
                     print("update", db_new_player.game_name, puuid)
                     log["updated players"].append(
-                        f"**{db_new_player.game_name}**\n")
+                        f"{db_new_player.game_name}\n")
 
                     db_new_player.puuid = puuid
                     db_new_player.game_name = account_data["gameName"]
@@ -139,7 +140,7 @@ def check_match():
                 # 상대가 DB에 아예 없으면 (다이아)
                 print("new", account_data["gameName"], puuid)
                 log["new players"].append(
-                    f"**{account_data['gameName']}**\n")
+                    f"{account_data['gameName']}\n")
                 db_new_player = models.Player(
                     puuid=puuid,
                     game_name=account_data["gameName"],
@@ -151,6 +152,7 @@ def check_match():
 
         db_master_player.last_matched_game_id = new_last_match_id
         db_master_player.last_matched_at = new_last_matched_at
+        db_master_player.last_checked_at = datetime.utcnow()
         db.commit()
         print("end", db_master_player.puuid)
 
@@ -160,7 +162,7 @@ def check_match():
 
 def lambda_handler(event, context):
     log = check_match()
-    log["end"] = datetime.now().isoformat()
+    log["end"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     success_color = 0x2ECC71
     error_color = 0xE74C3C
@@ -179,10 +181,10 @@ def lambda_handler(event, context):
                 총 `{log["total checked"]}`명의 마스터 플레이어의 매치를 수집했습니다.
 
                 새로운 플레이어 `{len(log["new players"])}`명을 발견했습니다.
-                {"".join([f"`{player}`" for player in log["new players"]])}
+                {"```" + "".join([f"{player}" for player in log["new players"]]) + "```" if log["new players"] else ""}
 
                 기존 마스터 플레이어 `{len(log["updated players"])}`명의 puuid를 수집했습니다.
-                {"".join([f"`{player}`" for player in log["updated players"]])}
+                {"```" + "".join([f"{player}" for player in log["updated players"]]) + "```" if log["updated players"] else ""}
 
                 새로운 랭크 매치 `{log["new ranked matches"]}`개를 발견했습니다.
 
