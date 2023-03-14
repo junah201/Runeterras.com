@@ -2,17 +2,38 @@ import requests
 import os
 import models
 import database
-from typing import List, Optional
 from sqlalchemy.sql import exists
 from sqlalchemy import literal
 from datetime import datetime
+import gzip
+from typing import Tuple, Dict, Optional, List
+import boto3
+import uuid
 
 RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
 DISCORD_WEBHOOKS_CHECK_MATCH_LOG = os.environ.get(
     "DISCORD_WEBHOOKS_CHECK_MATCH_LOG")
 
+header_row = [
+    "data_version",
+    "match_id",
+    "game_mode",
+    "game_type",
+    "game_start_time_utc",
+    "game_version",
+    "win_user_puuid",
+    "win_user_deck_id",
+    "win_user_deck_code",
+    "win_user_order_of_play",
+    "loss_user_puuid",
+    "loss_user_deck_id",
+    "loss_user_deck_code",
+    "loss_user_order_of_play",
+    "total_turn_count",
+]
 
-def check_match():
+
+def check_match() -> Tuple[str, Dict]:
     log = {
         "start": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "total checked": 0,
@@ -22,6 +43,8 @@ def check_match():
         "end": None,
         "rate limit": False,
     }
+
+    match_datas = ", ".join(header_row) + "\n"
 
     db = database.get_db()
 
@@ -47,7 +70,7 @@ def check_match():
             if res.status_code == 429:
                 print("Too many requests")
                 log["rate limit"] = True
-                return log
+                return match_datas, log
             continue
 
         match_ids = res.json()
@@ -79,10 +102,30 @@ def check_match():
                 if match_res.status_code == 429:
                     print("Too many requests")
                     log["rate limit"] = True
-                    return log
+                    return match_datas, log
                 continue
 
             match_data = match_res.json()
+
+            tmp = dict()
+            tmp["data_version"] = match_data["metadata"]["data_version"]
+            tmp["match_id"] = match_data["metadata"]["match_id"]
+            tmp["game_mode"] = match_data["info"]["game_mode"]
+            tmp["game_type"] = match_data["info"]["game_type"]
+            tmp["game_start_time_utc"] = match_data["info"]["game_start_time_utc"]
+            tmp["game_version"] = match_data["info"]["game_version"]
+
+            for player in match_data["info"]["players"]:
+                tmp[f"{player['game_outcome']}_user_puuid"] = player["puuid"]
+                tmp[f"{player['game_outcome']}_user_deck_id"] = player["deck_id"]
+                tmp[f"{player['game_outcome']}_user_deck_code"] = player["deck_code"]
+                tmp[f"{player['game_outcome']}_user_order_of_play"] = player["order_of_play"]
+
+            row = []
+            for header in header_row:
+                row.append(str(tmp.get(header, "")))
+            tmp = ", ".join(row) + "\n"
+            match_datas += tmp
 
             new_last_matched_at = max(new_last_matched_at, datetime.strptime(
                 match_data["info"]["game_start_time_utc"][:26], "%Y-%m-%dT%H:%M:%S.%f"))
@@ -117,7 +160,7 @@ def check_match():
                     print(account_res.text)
                     if account_res.status_code == 429:
                         print("Too many requests")
-                        return
+                        return match_datas, log
                     continue
                 account_data = account_res.json()
 
@@ -157,11 +200,11 @@ def check_match():
         print("end", db_master_player.puuid)
 
     db.commit()
-    return log
+    return match_datas, log
 
 
 def lambda_handler(event, context):
-    log = check_match()
+    match_datas, log = check_match()
     log["end"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     success_color = 0x2ECC71
@@ -200,6 +243,13 @@ def lambda_handler(event, context):
             }
         ]
     }
+
+    s3 = boto3.client('s3')
+    s3.put_object(
+        Bucket="lor-match-data",
+        Key=f"match_data-1-{datetime.utcnow().strftime('%Y/%m/%d/%H')}/{uuid.uuid4()}.csv.gz",
+        Body=gzip.compress(match_datas.encode("utf-8"))
+    )
 
     requests.post(
         DISCORD_WEBHOOKS_CHECK_MATCH_LOG,
