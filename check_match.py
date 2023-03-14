@@ -56,13 +56,16 @@ def lambda_handler(event, context):
 
             if match_res.status_code != 200:
                 print(match_res.text)
+                if match_res.status_code == 429:
+                    print("Too many requests")
+                    return
                 continue
 
             match_data = match_res.json()
 
-            print(match_data["info"]["game_mode"])
+            print(match_data["info"]["game_type"])
 
-            if match_data["info"]["game_mode"] != "Ranked":
+            if match_data["info"]["game_type"] != "Ranked":
                 continue
 
             for puuid in match_data["metadata"]["participants"]:
@@ -84,6 +87,12 @@ def lambda_handler(event, context):
                     },
                     timeout=3
                 )
+                if account_res.status_code != 200:
+                    print(account_res.text)
+                    if account_res.status_code == 429:
+                        print("Too many requests")
+                        return
+                    continue
                 account_data = account_res.json()
 
                 # 상대가 마스터이고, DB에 수집된 puuid가 없지만 이름이 같은 마스터 유저가 있는지 확인

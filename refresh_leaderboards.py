@@ -1,6 +1,7 @@
 import requests
 import os
-from database import crud, models, database
+import models
+import database
 from typing import List
 
 RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
