@@ -68,14 +68,6 @@ def lambda_handler(event, context):
     log = refresh_leaderboards()
     log["end"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    log = {
-        "start": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "new master players": [],
-        "total master players": 0,
-        "end": None,
-        "rate limit": False,
-    }
-
     success_color = 0x2ECC71
     error_color = 0xE74C3C
 
@@ -93,7 +85,7 @@ def lambda_handler(event, context):
                 총 `{log["total master players"]}`명의 마스터 플레이어가 있습니다.
 
                 새로운 마스터 플레이어 `{len(log["new master players"])}`명을 발견했습니다.
-                {"```" + "".join([f"{player}" for player in log["new master players"]]) + "```" if log["new players"] else ""}
+                {"```" + "".join([f"{player}" for player in log["new master players"]]) + "```" if log["new master players"] else ""}
 
                 rate limit : `{log["rate limit"]}`
 
