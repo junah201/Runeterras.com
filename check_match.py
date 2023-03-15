@@ -239,7 +239,7 @@ def lambda_handler(event, context):
                 "color": color,
                 "footer": {
                     "text": str(log["start"])
-            }
+                }
             }
         ]
     }
@@ -247,7 +247,7 @@ def lambda_handler(event, context):
     s3 = boto3.client('s3')
     s3.put_object(
         Bucket="lor-match-data",
-        Key=f"match_data-1-{datetime.utcnow().strftime('%Y/%m/%d/%H')}/{uuid.uuid4()}.csv.gz",
+        Key=f"{datetime.utcnow().strftime('%Y/%m/%d/%H')}/match_data-1-{uuid.uuid4()}.csv.gz",
         Body=gzip.compress(match_datas.encode("utf-8"))
     )
 
