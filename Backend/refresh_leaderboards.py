@@ -52,7 +52,7 @@ def refresh_leaderboards() -> Dict:
 
     for player in players:
         if player not in db_master_player_names:
-            log["new master players"].append(f"**{player}**\n")
+            log["new master players"].append(f"{player}\n")
             db_player = models.Player(
                 game_name=player,
                 is_master=True,
