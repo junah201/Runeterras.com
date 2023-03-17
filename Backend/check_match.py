@@ -107,6 +107,12 @@ def check_match() -> Tuple[str, Dict]:
 
             match_data = match_res.json()
 
+            new_last_matched_at = max(new_last_matched_at, datetime.strptime(
+                match_data["info"]["game_start_time_utc"][:26], "%Y-%m-%dT%H:%M:%S.%f"))
+
+            if match_data["info"]["game_type"] != "Ranked":
+                continue
+
             tmp = dict()
             tmp["data_version"] = match_data["metadata"]["data_version"]
             tmp["match_id"] = match_data["metadata"]["match_id"]
@@ -126,12 +132,6 @@ def check_match() -> Tuple[str, Dict]:
                 row.append(str(tmp.get(header, "")))
             tmp = ", ".join(row) + "\n"
             match_datas += tmp
-
-            new_last_matched_at = max(new_last_matched_at, datetime.strptime(
-                match_data["info"]["game_start_time_utc"][:26], "%Y-%m-%dT%H:%M:%S.%f"))
-
-            if match_data["info"]["game_type"] != "Ranked":
-                continue
 
             log["new ranked matches"] += 1
 
@@ -247,7 +247,7 @@ def lambda_handler(event, context):
     s3 = boto3.client('s3')
     s3.put_object(
         Bucket="lor-match-data",
-        Key=f"{datetime.utcnow().strftime('%Y/%m/%d/%H')}/match_data-1-{uuid.uuid4()}.csv.gz",
+        Key=f"{datetime.utcnow().strftime('year=%Y/month=%m/day=%d/hour=%H')}/match_data-1-{uuid.uuid4()}.csv.gz",
         Body=gzip.compress(match_datas.encode("utf-8"))
     )
 
