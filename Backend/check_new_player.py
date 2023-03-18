@@ -141,9 +141,6 @@ def lambda_handler(event, context):
                 기존 마스터 유저 : `{len(log["updated players"])}`명
                 {"```" + "".join([f"{player}" for player in log["updated players"]]) + "```" if log["updated players"] else ""}
 
-
-                총 `{log["total save data count"]}`개의 매치 데이터를 저장했습니다.
-
                 error : {"```" + "".join([f"{error}" for error in log["error"]]) + "```" if log["error"] else ""}
                 rate limit : `{log["rate limit"]}`
 
