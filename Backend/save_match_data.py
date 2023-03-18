@@ -7,7 +7,6 @@ import gzip
 from typing import Tuple, Dict, Optional, List
 import boto3
 import uuid
-from queue import Queue
 
 RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
 DISCORD_WEBHOOKS_CHECK_MATCH_LOG = os.environ.get(
@@ -87,15 +86,7 @@ def get_match_data_datail() -> Tuple[List, Dict]:
 
         log["total receive data count"] += len(match_ids)
 
-        match_id_queue = Queue()
         for match_id in match_ids:
-            match_id_queue.put(match_id)
-
-        print(match_id_queue.qsize())
-
-        while not match_id_queue.empty():
-            match_id = match_id_queue.get()
-
             print("match id", match_id.body)
 
             match_res = requests.get(
@@ -159,7 +150,7 @@ def get_match_data_datail() -> Tuple[List, Dict]:
                     new_player_puuid_sqs.send_message(
                         DelaySeconds=10,
                         MessageBody=(
-                            f"{player_puuid}\n{match_id}\n{new_last_matched_at}"
+                            f"{player_puuid}\n{match_id.body}\n{new_last_matched_at}"
                         )
                     )
                     continue
