@@ -28,7 +28,7 @@ jobs:
       - name: Python files to Zip file
         run: |
           (cd ./venv/lib/python3.9/site-packages; zip -r9 ../../../../Build.zip . )
-          (cd ./Backend; zip ../Build.zip -u -r check_match.py; zip ../Build.zip -u -r database.py; zip ../Build.zip -u -r models.py; zip ../Build.zip -u -r refresh_leaderboards.py)
+          (cd ./Backend; zip ../Build.zip -u -r check_match.py database.py models.py refresh_leaderboards.py save_match_data.py;)
       - name: Upload zip file artifact
         uses: actions/upload-artifact@v2
         with:
@@ -63,6 +63,13 @@ jobs:
 
       - name: Deploy LOR__check-match
         run: aws lambda update-function-code --function-name LOR__check-match --s3-bucket lor-build --s3-key Build.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Deploy LOR__save-match-data
+        run: aws lambda update-function-code --function-name LOR__save-match-data --s3-bucket lor-build --s3-key Build.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
