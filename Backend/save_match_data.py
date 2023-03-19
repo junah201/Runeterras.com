@@ -151,7 +151,8 @@ def get_match_data_datail() -> Tuple[List, Dict]:
                         DelaySeconds=10,
                         MessageBody=(
                             f"{player_puuid}\n{match_id.body}\n{new_last_matched_at}"
-                        )
+                        ),
+                        MessageDeduplicationId=player_puuid
                     )
                     continue
 

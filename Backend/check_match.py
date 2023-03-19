@@ -2,13 +2,9 @@ import requests
 import os
 import models
 import database
-from sqlalchemy.sql import exists
-from sqlalchemy import literal
 from datetime import datetime
-import gzip
 from typing import Tuple, Dict, Optional, List
 import boto3
-import uuid
 
 RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
 DISCORD_WEBHOOKS_CHECK_MATCH_LOG = os.environ.get(
@@ -101,8 +97,9 @@ def check_match() -> Dict:
         match_id_sqs.send_messages(
             Entries=[
                 {
-                    "Id": str(uuid.uuid4()),
-                    "MessageBody": match_id
+                    "Id": match_id,
+                    "MessageBody": match_id,
+                    "MessageDeduplicationId": match_id,
                 } for match_id in new_match_ids[idx:idx+10]
             ]
         )
