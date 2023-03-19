@@ -101,6 +101,7 @@ def check_match() -> Dict:
                 {
                     "Id": match_id,
                     "MessageBody": match_id,
+                    "MessageDeduplicationId": match_id,
                     "MessageGroupId": message_group_id,
                 } for match_id in new_match_ids[idx:idx+10]
             ]
