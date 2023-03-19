@@ -72,7 +72,7 @@ def get_match_data_datail() -> Tuple[List, Dict]:
 
     sqs_client = boto3.resource('sqs', region_name='ap-northeast-2')
     match_id_sqs = sqs_client.get_queue_by_name(
-        QueueName='LOR__match-data-queue')
+        QueueName='LOR__match-data-queue.fifo')
     new_player_puuid_sqs = sqs_client.get_queue_by_name(
         QueueName='LOR__new-palyer-puuid-queue')
 
@@ -155,7 +155,6 @@ def get_match_data_datail() -> Tuple[List, Dict]:
                         MessageBody=(
                             f"{player_puuid}\n{match_id.body}\n{new_last_matched_at}"
                         ),
-                        MessageDeduplicationId=player_puuid
                     )
                     continue
 

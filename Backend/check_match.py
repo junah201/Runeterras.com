@@ -91,7 +91,7 @@ def check_match() -> Dict:
 
     sqs_client = boto3.resource('sqs', region_name='ap-northeast-2')
     match_id_sqs = sqs_client.get_queue_by_name(
-        QueueName='LOR__match-data-queue')
+        QueueName='LOR__match-data-queue.fifo')
 
     for idx in range(0, len(new_match_ids), 10):
         match_id_sqs.send_messages(
@@ -99,7 +99,6 @@ def check_match() -> Dict:
                 {
                     "Id": match_id,
                     "MessageBody": match_id,
-                    "MessageDeduplicationId": match_id,
                 } for match_id in new_match_ids[idx:idx+10]
             ]
         )
