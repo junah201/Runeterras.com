@@ -5,6 +5,7 @@ import database
 from datetime import datetime
 from typing import Tuple, Dict, Optional, List
 import boto3
+import uuid
 
 RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
 DISCORD_WEBHOOKS_CHECK_MATCH_LOG = os.environ.get(
@@ -93,12 +94,14 @@ def check_match() -> Dict:
     match_id_sqs = sqs_client.get_queue_by_name(
         QueueName='LOR__match-data-queue.fifo')
 
+    message_group_id = str(uuid.uuid4())
     for idx in range(0, len(new_match_ids), 10):
         match_id_sqs.send_messages(
             Entries=[
                 {
                     "Id": match_id,
                     "MessageBody": match_id,
+                    "MessageGroupId": message_group_id,
                 } for match_id in new_match_ids[idx:idx+10]
             ]
         )
