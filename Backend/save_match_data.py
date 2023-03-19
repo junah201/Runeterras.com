@@ -68,6 +68,8 @@ def get_match_data_datail() -> Tuple[List, Dict]:
     max_number = int(init_res.headers["X-Method-Rate-Limit"].split(":")[0]) - int(
         init_res.headers["X-Method-Rate-Limit-Count"].split(":")[0])
 
+    print("max number ", max_number)
+
     sqs_client = boto3.resource('sqs', region_name='ap-northeast-2')
     match_id_sqs = sqs_client.get_queue_by_name(
         QueueName='LOR__match-data-queue')
@@ -80,6 +82,7 @@ def get_match_data_datail() -> Tuple[List, Dict]:
             MaxNumberOfMessages=10,
             WaitTimeSeconds=10
         )
+        print("receive data count", len(match_ids))
 
         if not match_ids:
             break
