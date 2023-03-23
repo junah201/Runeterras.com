@@ -142,7 +142,7 @@ def get_match_data_datail() -> Tuple[List, Dict]:
             row = []
             for header in header_row:
                 row.append(str(tmp.get(header, "")))
-            tmp = ", ".join(row) + "\n"
+            tmp = ",".join(row) + "\n"
             match_datas.append(tmp)
 
             for player_puuid in match_data["metadata"]["participants"]:
@@ -171,7 +171,7 @@ def save_match_data(match_datas: List[str]) -> None:
         print("no data")
         return
 
-    tmp = ", ".join(header_row) + "\n"
+    tmp = ",".join(header_row) + "\n"
 
     for match_data in match_datas:
         tmp += match_data
