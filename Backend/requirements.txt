@@ -2,3 +2,4 @@ pymysql
 sqlalchemy
 requests
 boto3
+lor-deckcodes
