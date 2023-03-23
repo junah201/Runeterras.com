@@ -21,11 +21,9 @@ header_row = [
     "game_start_time_utc",
     "game_version",
     "win_user_puuid",
-    "win_user_deck_id",
     "win_user_deck_code",
     "win_user_order_of_play",
     "loss_user_puuid",
-    "loss_user_deck_id",
     "loss_user_deck_code",
     "loss_user_order_of_play",
     "total_turn_count",
@@ -132,10 +130,10 @@ def get_match_data_datail() -> Tuple[List, Dict]:
             tmp["game_type"] = match_data["info"]["game_type"]
             tmp["game_start_time_utc"] = match_data["info"]["game_start_time_utc"]
             tmp["game_version"] = match_data["info"]["game_version"]
+            tmp["total_turn_count"] = match_data["info"]["total_turn_count"]
 
             for player in match_data["info"]["players"]:
                 tmp[f"{player['game_outcome']}_user_puuid"] = player["puuid"]
-                tmp[f"{player['game_outcome']}_user_deck_id"] = player["deck_id"]
                 tmp[f"{player['game_outcome']}_user_deck_code"] = player["deck_code"]
                 tmp[f"{player['game_outcome']}_user_order_of_play"] = player["order_of_play"]
 
