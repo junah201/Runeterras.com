@@ -119,7 +119,9 @@ def analyze_match_data(s3_path: str) -> int:
                     "win": 0,
                     "lose": 0,
                 }
-            )
+            ),
+            "first_start_win_count": 0,
+            "first_start_lose_count": 0,
         }
     )
 
@@ -156,12 +158,27 @@ def analyze_match_data(s3_path: str) -> int:
         single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                  ]["single_meta_deck_code_analyze"][row["win_user_deck_code"]]["win"] += 1
 
+        is_first_start = (int(row["total_turn_count"]) % 2 == 1 and int(row["win_user_order_of_play"]) == 1) or (
+            int(row["total_turn_count"]) % 2 == 0 and int(row["win_user_order_of_play"]) == 0)
+        if is_first_start:
+            single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
+                                     ]["first_start_win_count"] += 1
+
+        single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
+                                 ]["turn"][row["total_turn_count"]]["win"] += 1
+
         single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
                                  ]["lose"] += 1
         single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
                                  ]["turn"][row["total_turn_count"]]["lose"] += 1
         single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                  ]["single_meta_deck_code_analyze"][row["loss_user_deck_code"]]["lose"] += 1
+
+        is_first_start = (int(row["total_turn_count"]) % 2 == 1 and int(row["loss_user_order_of_play"]) == 1) or (
+            int(row["total_turn_count"]) % 2 == 0 and int(row["loss_user_order_of_play"]) == 0)
+        if is_first_start:
+            single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
+                                     ]["first_start_lose_count"] += 1
 
     for key, value in game_version_analyze.items():
         db_game_version = db.query(models.GameVersion).filter(
@@ -195,6 +212,8 @@ def analyze_match_data(s3_path: str) -> int:
 
         db_single_meta_deck_analyze.win_count += value["win"]
         db_single_meta_deck_analyze.lose_count += value["lose"]
+        db_single_meta_deck_analyze.first_start_win_count = value["first_start_win_count"]
+        db_single_meta_deck_analyze.first_start_lose_count = value["first_start_lose_count"]
 
         for turn_key, turn_value in value["turn"].items():
             db_single_meta_deck_turn_analyze = db.query(models.SingleMetaDeckTurn).filter(

@@ -160,12 +160,26 @@ class SingleMetaDeckAnalyze(Base):
         default=0,
         comment="패배 수",
     )
+    first_start_win_count = Column(
+        INTEGER(unsigned=True),
+        unique=False,
+        nullable=False,
+        default=0,
+        comment="선공 승리 수",
+    )
+    first_start_lose_count = Column(
+        INTEGER(unsigned=True),
+        unique=False,
+        nullable=False,
+        default=0,
+        comment="선공 패배 수",
+    )
 
     def __repr__(self):
-        return f"SingleMetaDeckAnalyze(id={self.id}, game_version={self.game_version}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"SingleMetaDeckAnalyze(id={self.id}, game_version={self.game_version}, win_count={self.win_count}, lose_count={self.lose_count} first_start_win_count={self.first_start_win_count}, first_start_lose_count={self.first_start_lose_count})"
 
     def __str__(self):
-        return f"SingleMetaDeckAnalyze(id={self.id}, game_version={self.game_version}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"SingleMetaDeckAnalyze(id={self.id}, game_version={self.game_version}, win_count={self.win_count}, lose_count={self.lose_count} first_start_win_count={self.first_start_win_count}, first_start_lose_count={self.first_start_lose_count})"
 
 
 class SingleMetaDeckTurn(Base):
