@@ -1,21 +1,36 @@
+import React from "react";
 import styled from "styled-components";
 
-import { DeckInfo } from "../../types/deck";
+import { IDeckInfo, IDeckDetailInfo } from "../../types/deck";
+import axios from "axios";
+import WinLosePieChart from "../chart/WinLosePieChart";
+import TurnBarChart from "../chart/TurnBarChart";
+import DeckCode from "./DeckCode";
 
 const StyledDeck = styled.div`
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-
-	padding: 10px 40px;
 	background-color: #262161;
 	border-radius: 10px;
 
-	max-width: 1250px;
-	min-width: 1250px;
-	height: 200px;
+	width: 1250px;
 	margin: 12px 0;
+	overflow: hidden;
+
+	& > div + div {
+		margin-top: 30px;
+	}
+`;
+
+const StyledDeckPreview = styled.div`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-evenly;
+	padding: 10px 40px;
+	width: 1250px;
+	height: 200px;
 `;
 
 const StyledDeckInfoContainer = styled.div`
@@ -36,12 +51,15 @@ const StyledDeckRateInfo = styled.div`
 	flex-direction: column;
 
 	color: #ffffff;
+
+	& span + span {
+		margin-top: 8px;
+	}
 `;
 
 const StyledFactionContainer = styled.div`
 	display: flex;
-	flex-direction: row;
-	margin-right: 20px;
+	flex-direction: column;
 
 	& div {
 		height: 32px;
@@ -55,22 +73,7 @@ const StyledFactionContainer = styled.div`
 	}
 
 	& div + div {
-		margin-left: 24px;
-	}
-`;
-
-const StyledChampionContainer = styled.div`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-
-	color: #ffffff;
-	font-size: 16px;
-	font-weight: bold;
-
-	& div + div {
-		margin-left: 12px;
+		margin-top: 24px;
 	}
 `;
 
@@ -83,6 +86,10 @@ const StyledDeckDivider = styled.div`
 
 const StyledCardsContainer = styled.div`
 	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	min-width: 315px;
 `;
 
 const StyledCard = styled.div`
@@ -102,51 +109,161 @@ const StyledCard = styled.div`
 	}
 `;
 
-const Deck: React.FC<{ deck: DeckInfo }> = (props) => {
-	console.log(process.env.REACT_APP_CDN_URL);
+const StyledDetailButton = styled.button`
+	width: 30px;
+	height: 30px;
+	border: none;
+	background-color: #262161;
+	margin: 0 30px;
+
+	& img {
+		height: 100%;
+		width: 100%;
+		object-fit: cover;
+		filter: invert(78%) sepia(96%) saturate(1878%) hue-rotate(323deg)
+			brightness(96%) contrast(99%);
+	}
+`;
+
+const StyledDetailContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+	width: 1250px;
+	background-color: #262161;
+	padding: 30px;
+`;
+
+const StyledDetailPieChartContainer = styled.div`
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 400px;
+`;
+
+const StyledDetailDeckCodeContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+`;
+
+const Deck: React.FC<{ deck: IDeckInfo }> = (props) => {
+	const [isDetailOpen, setIsDetailOpen] = React.useState(false);
+	const [detailInfo, setDetailInfo] = React.useState<IDeckDetailInfo | null>(
+		null
+	);
+
+	const deckRef = React.useRef<HTMLDivElement>(null);
+
+	React.useEffect(() => {
+		if (!isDetailOpen) {
+			return;
+		}
+
+		axios({
+			url: `${process.env.REACT_APP_API_URL}/deck/meta/${props.deck.id}/detail`,
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
+		}).then((res) => {
+			if (res.status === 200) {
+				setDetailInfo(res.data);
+			}
+		});
+	}, [isDetailOpen, props.deck.id]);
 
 	return (
-		<StyledDeck key={props.deck.id}>
-			<StyledDeckInfoContainer>
-				<StyledDeckInfoWrapper>
-					<StyledFactionContainer>
-						{props.deck.factions.map((faction) => {
-							return (
-								<div>
-									<img
-										src={`${process.env.REACT_APP_CDN_URL}/images/faction/${faction}.svg`}
-										alt={faction}
-									/>
-								</div>
-							);
-						})}
-					</StyledFactionContainer>
-					<StyledChampionContainer>
-						{props.deck.champions.map((champion) => {
-							return <div>{champion}</div>;
-						})}
-					</StyledChampionContainer>
-				</StyledDeckInfoWrapper>
+		<StyledDeck ref={deckRef} key={props.deck.id}>
+			<StyledDeckPreview>
+				<StyledDeckInfoContainer>
+					<StyledDeckInfoWrapper>
+						<StyledFactionContainer>
+							{props.deck.factions.map((faction) => {
+								return (
+									<div>
+										<img
+											src={`${process.env.REACT_APP_CDN_URL}/images/faction/${faction}.svg`}
+											alt={faction}
+										/>
+									</div>
+								);
+							})}
+						</StyledFactionContainer>
+					</StyledDeckInfoWrapper>
+				</StyledDeckInfoContainer>
+				<StyledDeckDivider />
+				<StyledCardsContainer>
+					{props.deck.champions.map((champion) => {
+						return (
+							<StyledCard key={champion}>
+								<img
+									src={`${process.env.REACT_APP_CDN_URL}/images/card/ko/${champion}.png`}
+									alt={champion}
+								/>
+							</StyledCard>
+						);
+					})}
+				</StyledCardsContainer>
+				<StyledDeckDivider />
 				<StyledDeckInfoWrapper>
 					<StyledDeckRateInfo>
-						<span>Pick Rate : {props.deck.pickRate}%</span>
-						<span>Win Rate : {props.deck.winRate}%</span>
+						<span>Total {props.deck.totalMatchCount} Matches</span>
+						<span>
+							Win Rate : {props.deck.winRate}% ({props.deck.winCount}W{" "}
+							{props.deck.loseCount}L)
+						</span>
 					</StyledDeckRateInfo>
 				</StyledDeckInfoWrapper>
-			</StyledDeckInfoContainer>
-			<StyledDeckDivider />
-			<StyledCardsContainer>
-				{props.deck.cards.map((card) => {
-					return (
-						<StyledCard>
-							<img
-								src={`${process.env.REACT_APP_CDN_URL}/images/card/${card.filename}.png`}
-								alt={card.name}
-							/>
-						</StyledCard>
-					);
-				})}
-			</StyledCardsContainer>
+				<StyledDetailButton
+					onClick={(e) => {
+						setIsDetailOpen((prev) => {
+							if (!prev) {
+								deckRef.current?.scrollIntoView({
+									block: "start",
+									behavior: "smooth",
+								});
+							}
+							return !prev;
+						});
+					}}
+				>
+					<img src="/arrow_down.svg" alt="arrow_down" />
+				</StyledDetailButton>
+			</StyledDeckPreview>
+			{isDetailOpen && (
+				<StyledDetailContainer>
+					<StyledDetailPieChartContainer>
+						<WinLosePieChart
+							win={props.deck.firstStartWinCount}
+							lose={props.deck.firstStartLoseCount}
+							title={"선공"}
+						/>
+						<WinLosePieChart
+							win={props.deck.winCount - props.deck.firstStartWinCount}
+							lose={props.deck.loseCount - props.deck.firstStartLoseCount}
+							title={"후공"}
+						/>
+					</StyledDetailPieChartContainer>
+					<StyledDetailPieChartContainer>
+						{detailInfo && <TurnBarChart data={detailInfo.turn} />}
+					</StyledDetailPieChartContainer>
+					<StyledDetailDeckCodeContainer>
+						{detailInfo &&
+							detailInfo.deck_code
+								.slice(0, 3)
+								.map((item) => (
+									<DeckCode
+										key={item?.deck_code}
+										code={item?.deck_code || ""}
+										win_count={item?.win}
+										lose_count={item?.lose}
+									/>
+								))}
+					</StyledDetailDeckCodeContainer>
+				</StyledDetailContainer>
+			)}
 		</StyledDeck>
 	);
 };
