@@ -4,96 +4,28 @@ import database
 from datetime import datetime, timedelta
 from typing import Dict, Union, List, Optional
 import boto3
-import time
 from collections import defaultdict
 from csv import DictReader
 from lor_deckcodes import LoRDeck, CardCodeAndCount
 import requests
+import gzip
+import io
+from urllib.parse import unquote_plus
 
 DISCORD_WEBHOOKS_ANALYZE_MATCH_DATA_LOG = os.environ.get(
     "DISCORD_WEBHOOKS_ANALYZE_MATCH_DATA_LOG")
 
 
-def update_partition(athena_client) -> bool:
-    response = athena_client.start_query_execution(
-        QueryString=f"MSCK REPAIR TABLE `lor-match-data-db`;",
-        QueryExecutionContext={
-            'Database': 'lor'
-        },
-        ResultConfiguration={
-            'OutputLocation': 's3://lor-match-data-athena-output/',
-        }
-    )
-
-    state = 'RUNNING'
-    max_execution = 10
-    execution_id = response['QueryExecutionId']
-
-    while (max_execution > 0 and state in ['RUNNING', 'QUEUED']):
-        max_execution = max_execution - 1
-        response = athena_client.get_query_execution(
-            QueryExecutionId=execution_id)
-
-        if 'QueryExecution' in response and \
-                'Status' in response['QueryExecution'] and \
-                'State' in response['QueryExecution']['Status']:
-            state = response['QueryExecution']['Status']['State']
-            if state == 'FAILED':
-                return False
-            elif state == 'SUCCEEDED':
-                return True
-        time.sleep(1)
-
-    return False
-
-
-def get_match_data(athena_client) -> Union[bool, str]:
-    utc_yesterday = datetime.utcnow() - timedelta(days=1)
-    print(utc_yesterday.strftime(
-        '''"year"='%Y' AND "month"='%m' AND "day"='%d' '''))
-
-    response = athena_client.start_query_execution(
-        QueryString=f"""
-            SELECT * FROM "lor"."lor-match-data-db"
-            WHERE {utc_yesterday.strftime('''"year"='%Y' AND "month"='%m' AND "day"='%d' ''')}
-            """,
-        QueryExecutionContext={
-            'Database': 'lor'
-        },
-        ResultConfiguration={
-            'OutputLocation': 's3://lor-match-data-athena-output/',
-        }
-    )
-
-    state = 'RUNNING'
-    max_execution = 10
-    execution_id = response['QueryExecutionId']
-    while (max_execution > 0 and state in ['RUNNING', 'QUEUED']):
-        max_execution = max_execution - 1
-        response = athena_client.get_query_execution(
-            QueryExecutionId=execution_id)
-
-        if 'QueryExecution' in response and \
-                'Status' in response['QueryExecution'] and \
-                'State' in response['QueryExecution']['Status']:
-            state = response['QueryExecution']['Status']['State']
-            if state == 'FAILED':
-                return False
-            elif state == 'SUCCEEDED':
-                s3_path = response['QueryExecution']['ResultConfiguration']['OutputLocation']
-                return s3_path
-        time.sleep(1)
-
-
-def analyze_match_data(s3_path: str) -> int:
+def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
     total_match_count = 0
 
     s3_client = boto3.client('s3')
 
     obj = s3_client.get_object(
-        Bucket="lor-match-data-athena-output", Key=s3_path.replace("s3://lor-match-data-athena-output/", ""))
+        Bucket=s3_bucket, Key=s3_path)
 
-    lines = obj["Body"].read().decode("utf-8").split()
+    with gzip.GzipFile(fileobj=io.BytesIO(obj["Body"].read()), mode='rb') as fh:
+        lines = fh.read().decode("utf-8").split()
 
     total_match_count = len(lines) - 1
 
@@ -270,31 +202,28 @@ def lambda_handler(event, context):
         "end": None,
     }
 
-    athena_client = boto3.client('athena')
-    is_success = update_partition(athena_client)
-    if not is_success:
-        print("Failed to update partition")
-        return
+    total_match_count = 0
 
-    s3_path = get_match_data(athena_client)
+    for record in event['Records']:
+        s3_bucket = record['s3']['bucket']['name']
+        s3_key = unquote_plus(record['s3']['object']['key'])
 
-    if not s3_path:
-        print("Failed to get match data")
-        return
+        print(f"Match data path: {s3_bucket} {s3_key}")
+        total_match_count += analyze_match_data(s3_bucket, s3_key)
 
-    print(f"Match data path: {s3_path}")
-    total_match_count = analyze_match_data(s3_path)
     log["total_match_count"] = total_match_count
     log["end"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     success_color = 0x2ECC71
 
-    data = {
-        "content": "",
-        "embeds": [
-            {
-                "title": "매치 데이터 분석 로그",
-                "description": f"""
+    requests.post(
+        DISCORD_WEBHOOKS_ANALYZE_MATCH_DATA_LOG,
+        json={
+            "content": "",
+            "embeds": [
+                {
+                    "title": "매치 데이터 분석 로그",
+                    "description": f"""
                 총 `{log["total_match_count"]}`개의 매치를 분석하였습니다..
 
                 target_date : `{log["target_date"]}`
@@ -302,17 +231,13 @@ def lambda_handler(event, context):
                 시작 : `{log["start"]}`
                 종료 : `{log["end"]}`
                 """,
-                "color": success_color,
-                "footer": {
-                    "text": str(log["start"])
+                    "color": success_color,
+                    "footer": {
+                        "text": str(log["start"])
+                    }
                 }
-            }
-        ]
-    }
-
-    requests.post(
-        DISCORD_WEBHOOKS_ANALYZE_MATCH_DATA_LOG,
-        json=data
+            ]
+        }
     )
 
     return log
