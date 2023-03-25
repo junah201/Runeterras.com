@@ -5,8 +5,13 @@ import json
 
 
 def lambda_handler(event, context):
-    skip = event["queryStringParameters"].get("skip", None)
-    limit = event["queryStringParameters"].get("limit", None)
+    query_string_parameters = event.get("queryStringParameters", None)
+    skip = None
+    limit = None
+
+    if query_string_parameters:
+        skip = query_string_parameters.get("skip", None)
+        limit = query_string_parameters.get("limit", None)
 
     db = database.get_db()
     db_meta_decks: List[models.SingleMetaDeckAnalyze] = db.query(models.SingleMetaDeckAnalyze).order_by(
