@@ -6,19 +6,16 @@ import json
 
 def lambda_handler(event, context):
     query_string_parameters = event.get("queryStringParameters", None)
-    skip = None
-    limit = None
+    skip = 0
+    limit = 10
 
     if query_string_parameters:
-        skip = query_string_parameters.get("skip", None)
-        limit = query_string_parameters.get("limit", None)
+        skip = query_string_parameters.get("skip", 0)
+        limit = query_string_parameters.get("limit", 10)
 
     db = database.get_db()
     db_meta_decks: List[models.SingleMetaDeckAnalyze] = db.query(models.SingleMetaDeckAnalyze).order_by(
-        (models.SingleMetaDeckAnalyze.win_count + models.SingleMetaDeckAnalyze.lose_count).asc())
-
-    if skip and limit:
-        db_meta_decks = db_meta_decks.offset(skip).limit(limit)
+        (models.SingleMetaDeckAnalyze.win_count + models.SingleMetaDeckAnalyze.lose_count).desc()).offset(skip).limit(limit)
 
     db_meta_decks = db_meta_decks.all()
 
