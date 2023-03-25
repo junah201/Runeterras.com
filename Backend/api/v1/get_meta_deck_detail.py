@@ -54,14 +54,12 @@ def lambda_handler(event, context):
         tmp_turn_data[turn.turn_count]["win"] += turn.win_count
         tmp_turn_data[turn.turn_count]["lose"] += turn.lose_count
 
-    turn_data = [
-        {
-            "turn_count": turn_count,
+    turn_data = dict()
+    for turn_count in range(1, max(tmp_turn_data.keys()) + 1):
+        turn_data[turn_count] = {
             "win": tmp_turn_data[turn_count]["win"],
             "lose": tmp_turn_data[turn_count]["lose"],
         }
-        for turn_count in range(1, max(tmp_turn_data.keys()) + 1)
-    ]
 
     db_deck_codes: List[models.SingleMetaDeckCodeAnalyze] = db.query(models.SingleMetaDeckCodeAnalyze)\
         .filter(models.SingleMetaDeckCodeAnalyze.single_meta_deck_analyze_id == deck_id)\
