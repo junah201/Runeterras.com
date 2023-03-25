@@ -67,8 +67,13 @@ def lambda_handler(event, context):
         .limit(10)\
         .all()
 
-    deck_code_data: List[str] = [
-        deck_code.deck_code for deck_code in db_deck_codes
+    deck_code_data: List[dict] = [
+        {
+            "deck_code": deck_code.deck_code,
+            "win": deck_code.win_count,
+            "lose": deck_code.lose_count,
+        }
+        for deck_code in db_deck_codes
     ]
 
     return {
