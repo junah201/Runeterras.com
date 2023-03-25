@@ -198,7 +198,7 @@ def lambda_handler(event, context):
     log = {
         "start": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "total_match_count": 0,
-        "target_date": (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d"),
+        "target_files": [],
         "end": None,
     }
 
@@ -207,7 +207,7 @@ def lambda_handler(event, context):
     for record in event['Records']:
         s3_bucket = record['s3']['bucket']['name']
         s3_key = unquote_plus(record['s3']['object']['key'])
-
+        log["target_files"].append(s3_key)
         print(f"Match data path: {s3_bucket} {s3_key}")
         total_match_count += analyze_match_data(s3_bucket, s3_key)
 
@@ -226,7 +226,7 @@ def lambda_handler(event, context):
                     "description": f"""
                 총 `{log["total_match_count"]}`개의 매치를 분석하였습니다..
 
-                target_date : `{log["target_date"]}`
+                target file : `{log["target_files"]}`
 
                 시작 : `{log["start"]}`
                 종료 : `{log["end"]}`
