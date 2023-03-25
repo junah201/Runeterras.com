@@ -11,7 +11,9 @@ const App: React.FC = () => {
 		<div className="App">
 			<Header />
 			<Switch>
-				<Route path="/" component={MainPage} />
+				<Route exact path="/">
+					<MainPage />
+				</Route>
 			</Switch>
 			<Footer />
 		</div>

@@ -3,7 +3,15 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 
 import Deck from "../components/deck/Deck";
-import { DeckInfo } from "../types/deck";
+import { IDeckInfo } from "../types/deck";
+
+import axios from "axios";
+
+import { getDeckFromCode } from "lor-deckcodes-ts";
+
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 const StyledMainPage = styled.main`
 	margin: 60px 0;
@@ -14,6 +22,7 @@ const StyledIntroductionContainer = styled.div`
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	padding: 20px;
 
 	& h1 {
 		color: #ffffff;
@@ -48,29 +57,85 @@ const StyledMoreDeckLink = styled(Link)`
 	text-decoration: none;
 `;
 
-const MainPage: React.FC = () => {
-	const [totalMasterUserCount, setTotalMasterUserCount] = React.useState(0);
-	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
-	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("12 Hours ago");
-	const [deckList, setDeckList] = React.useState<DeckInfo[]>([]);
+const StyledDeckListInfo = styled.div`
+	width: 1250px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
 
-	const domeDeck: DeckInfo = {
-		id: 1,
-		pickRate: 0.1,
-		winRate: 0.2,
-		factions: ["bandle_city", "bilgewater"],
-		champions: ["jayce", "jayce"],
-		cards: [1, 2, 3, 4, 5, 6, 7, 8].map((id) => {
-			return {
-				id: id,
-				name: "jayce",
-				filename: "jayce",
-			};
-		}),
-	};
+	& p {
+		color: #ffffff;
+	}
+`;
+
+const MainPage: React.FC = () => {
+	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
+	const [lastGamaVersion, setLastGamaVersion] = React.useState(
+		"live-green-4-02-32 "
+	);
+	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("12 Hours ago");
+	const [deckList, setDeckList] = React.useState<IDeckInfo[]>([]);
 
 	React.useEffect(() => {
-		setDeckList([domeDeck, domeDeck, domeDeck]);
+		axios({
+			url: `${process.env.REACT_APP_API_URL}/game_version/lastest`,
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
+		}).then((res) => {
+			if (res.status === 200) {
+				setLastGamaVersion(res.data.game_version);
+				setLastUpdatedAt(dayjs(res.data.updated_at).fromNow());
+				setTotalMatchDataCount(res.data.total_match_count);
+			}
+		});
+	}, []);
+
+	React.useEffect(() => {
+		axios({
+			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
+			params: { limit: 3, skip: 0 },
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
+		}).then((res) => {
+			if (res.status === 200) {
+				for (const deck of res.data) {
+					const decodedDeck = getDeckFromCode(deck.deck_code);
+					const newDeck: IDeckInfo = {
+						id: deck.id,
+						totalMatchCount: deck.win_count + deck.lose_count,
+						winRate: (
+							(deck.win_count * 100) /
+							(deck.win_count + deck.lose_count)
+						).toFixed(2),
+						winCount: deck.win_count,
+						loseCount: deck.lose_count,
+						firstStartWinCount: deck.first_start_win_count,
+						firstStartLoseCount: deck.first_start_lose_count,
+						factions: [],
+						champions: [],
+					};
+					for (const card of decodedDeck) {
+						newDeck.champions.push(card.cardCode);
+					}
+					newDeck.factions = [
+						...new Set(
+							decodedDeck.map((card) => `${card.cardCode.slice(2, 4)}`)
+						),
+					];
+					newDeck.champions = decodedDeck.map((card) => card.cardCode);
+					setDeckList((prev) => {
+						return [...prev, newDeck];
+					});
+				}
+			}
+		});
 	}, []);
 
 	return (
@@ -82,12 +147,15 @@ const MainPage: React.FC = () => {
 					프로젝트입니다.
 				</p>
 				<p>
-					현재 {totalMasterUserCount}명의 마스터 유저들로부터{" "}
 					{totalMatchDataCount}개의 매치 데이터를 수집하여 통계를 분석하고
 					있습니다.
 				</p>
 			</StyledIntroductionContainer>
 			<StyledDeckContainer>
+				<StyledDeckListInfo>
+					<p>Version : {lastGamaVersion}</p>
+					<p>Last Updated : {lastUpdatedAt}</p>
+				</StyledDeckListInfo>
 				{deckList.map((deck) => (
 					<Deck key={deck.id} deck={deck} />
 				))}

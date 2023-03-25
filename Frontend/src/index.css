@@ -1,23 +1,23 @@
 @font-face {
 	font-family: "inter";
-	src: url("https://dm0o509lsbx5e.cloudfront.net/fonts/Inter-Regular.woff2");
+	src: url("https://cdn.runeterras.com/fonts/Inter-Regular.woff2");
 }
 
 @font-face {
 	font-family: "inter";
-	src: url("https://dm0o509lsbx5e.cloudfront.net/fonts/Inter-Medium.woff2");
+	src: url("https://cdn.runeterras.com/fonts/Inter-Medium.woff2");
 	font-weight: 500;
 }
 
 @font-face {
 	font-family: "inter";
-	src: url("https://dm0o509lsbx5e.cloudfront.net/fonts/Inter-SemiBold.woff2");
+	src: url("https://cdn.runeterras.com/fonts/Inter-SemiBold.woff2");
 	font-weight: 600;
 }
 
 @font-face {
 	font-family: "inter";
-	src: url("https://dm0o509lsbx5e.cloudfront.net/fonts/Inter-Bold.woff2");
+	src: url("https://cdn.runeterras.com/fonts/Inter-Bold.woff2");
 	font-weight: 700;
 }
 
@@ -27,6 +27,10 @@
 	box-sizing: border-box;
 	font-family: "Inter", sans-serif;
 	letter-spacing: 0.8px;
+}
+
+html {
+	scroll-behavior: smooth;
 }
 
 body {
