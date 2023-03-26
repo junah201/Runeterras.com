@@ -66,28 +66,29 @@ const StyledDeckContainer = styled.div`
 	justify-content: center;
 `;
 
-const StyledMoreDeckLink = styled(Link)`
+const StyledMoreDeckLink = styled.button`
 	background-color: #262161;
 	color: #ffffff;
 	padding: 12px 0;
-	max-width: 1250px;
-	min-width: 1250px;
+	width: min(1250px, 80vw);
 	border-radius: 10px;
-
+	font-size: 1rem;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	text-decoration: none;
+	border: none;
 `;
 
 const StyledDeckListInfo = styled.div`
-	width: 1250px;
+	width: min(1250px, 80vw);
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
 
 	& p {
+		font-size: 1rem;
 		color: #ffffff;
 	}
 `;
@@ -102,6 +103,9 @@ const MetaDecksPage: React.FC = () => {
 	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
 	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("Loading...");
 	const [deckList, setDeckList] = React.useState<IDeckInfo[]>([]);
+
+	const SIZE = 10;
+	const [page, setPage] = React.useState(0);
 
 	React.useEffect(() => {
 		axios({
@@ -120,14 +124,14 @@ const MetaDecksPage: React.FC = () => {
 				setTotalMatchDataCount(res.data.total_match_count);
 			}
 		});
-	}, []);
+	}, [values.version]);
 
 	React.useEffect(() => {
 		axios({
 			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
 			params: {
 				limit: 10,
-				skip: 0,
+				skip: page,
 				game_version: values.version === undefined ? null : values.version,
 			},
 			method: "GET",
@@ -137,7 +141,7 @@ const MetaDecksPage: React.FC = () => {
 			},
 		}).then((res) => {
 			if (res.status === 200) {
-				const newDeckList = [];
+				const newDeckList: IDeckInfo[] = [];
 				for (const deck of res.data) {
 					const decodedDeck = getDeckFromCode(deck.deck_code);
 					const newDeck: IDeckInfo = {
@@ -165,10 +169,12 @@ const MetaDecksPage: React.FC = () => {
 					newDeck.champions = decodedDeck.map((card) => card.cardCode);
 					newDeckList.push(newDeck);
 				}
-				setDeckList(newDeckList);
+				setDeckList((prev) => {
+					return [...prev, ...newDeckList];
+				});
 			}
 		});
-	}, []);
+	}, [values.version, page]);
 
 	return (
 		<StyledMainPage>
@@ -185,7 +191,13 @@ const MetaDecksPage: React.FC = () => {
 				{deckList.map((deck) => (
 					<Deck key={deck.id} deck={deck} />
 				))}
-				<StyledMoreDeckLink to="/deck/meta">더 보기</StyledMoreDeckLink>
+				<StyledMoreDeckLink
+					onClick={() => {
+						setPage((prev) => prev + SIZE);
+					}}
+				>
+					더 보기
+				</StyledMoreDeckLink>
 			</StyledDeckContainer>
 		</StyledMainPage>
 	);
