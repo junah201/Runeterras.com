@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import queryString from "query-string";
+import { Link, useLocation } from "react-router-dom";
 
 import Deck from "../components/deck/Deck";
 import { IDeckInfo } from "../types/deck";
@@ -11,7 +12,29 @@ import { getDeckFromCode } from "lor-deckcodes-ts";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
+import updateLocale from "dayjs/plugin/updateLocale";
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
+dayjs.extend(updateLocale);
+
+dayjs.updateLocale("en", {
+	relativeTime: {
+		future: "in %s",
+		past: "%s ago",
+		s: "a few seconds",
+		m: "a minute",
+		mm: "%d minutes",
+		h: "1 hour",
+		hh: "%d hours",
+		d: "1 day",
+		dd: "%d days",
+		M: "1 month",
+		MM: "%d months",
+		y: "1 year",
+		yy: "%d years",
+	},
+});
 
 const StyledMainPage = styled.main`
 	margin: 60px 0;
@@ -70,16 +93,21 @@ const StyledDeckListInfo = styled.div`
 `;
 
 const MetaDecksPage: React.FC = () => {
-	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
-	const [lastGamaVersion, setLastGamaVersion] = React.useState(
-		"live-green-4-02-32 "
+	const { search } = useLocation();
+	const values = queryString.parse(search);
+
+	const [gameVersion, setGameVersion] = React.useState(
+		values.version === undefined ? "lastest" : values.version
 	);
-	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("12 Hours ago");
+	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
+	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("Loading...");
 	const [deckList, setDeckList] = React.useState<IDeckInfo[]>([]);
 
 	React.useEffect(() => {
 		axios({
-			url: `${process.env.REACT_APP_API_URL}/game_version/lastest`,
+			url: `${process.env.REACT_APP_API_URL}/game_version/${
+				values.version === undefined ? "lastest" : values.version
+			}`,
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -87,8 +115,8 @@ const MetaDecksPage: React.FC = () => {
 			},
 		}).then((res) => {
 			if (res.status === 200) {
-				setLastGamaVersion(res.data.game_version);
-				setLastUpdatedAt(dayjs(res.data.updated_at).fromNow());
+				setGameVersion(res.data.game_version);
+				setLastUpdatedAt(dayjs.utc(res.data.updated_at).fromNow());
 				setTotalMatchDataCount(res.data.total_match_count);
 			}
 		});
@@ -97,7 +125,11 @@ const MetaDecksPage: React.FC = () => {
 	React.useEffect(() => {
 		axios({
 			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
-			params: { limit: 10, skip: 0 },
+			params: {
+				limit: 10,
+				skip: 0,
+				game_version: values.version === undefined ? null : values.version,
+			},
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -145,7 +177,9 @@ const MetaDecksPage: React.FC = () => {
 			</StyledIntroductionContainer>
 			<StyledDeckContainer>
 				<StyledDeckListInfo>
-					<p>Version : {lastGamaVersion}</p>
+					<p>
+						Version : {gameVersion} ({totalMatchDataCount} Match)
+					</p>
 					<p>Last Updated : {lastUpdatedAt}</p>
 				</StyledDeckListInfo>
 				{deckList.map((deck) => (

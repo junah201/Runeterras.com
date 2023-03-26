@@ -11,7 +11,29 @@ import { getDeckFromCode } from "lor-deckcodes-ts";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
+import updateLocale from "dayjs/plugin/updateLocale";
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
+dayjs.extend(updateLocale);
+
+dayjs.updateLocale("en", {
+	relativeTime: {
+		future: "in %s",
+		past: "%s ago",
+		s: "a few seconds",
+		m: "a minute",
+		mm: "%d minutes",
+		h: "1 hour",
+		hh: "%d hours",
+		d: "1 day",
+		dd: "%d days",
+		M: "1 month",
+		MM: "%d months",
+		y: "1 year",
+		yy: "%d years",
+	},
+});
 
 const StyledMainPage = styled.main`
 	margin: 60px 0;
@@ -71,10 +93,8 @@ const StyledDeckListInfo = styled.div`
 
 const MainPage: React.FC = () => {
 	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
-	const [lastGamaVersion, setLastGamaVersion] = React.useState(
-		"live-green-4-02-32 "
-	);
-	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("12 Hours ago");
+	const [lastGamaVersion, setLastGamaVersion] = React.useState("Loading...");
+	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("Loading...");
 	const [deckList, setDeckList] = React.useState<IDeckInfo[]>([]);
 
 	React.useEffect(() => {
@@ -88,7 +108,7 @@ const MainPage: React.FC = () => {
 		}).then((res) => {
 			if (res.status === 200) {
 				setLastGamaVersion(res.data.game_version);
-				setLastUpdatedAt(dayjs(res.data.updated_at).fromNow());
+				setLastUpdatedAt(dayjs.utc(res.data.updated_at).fromNow());
 				setTotalMatchDataCount(res.data.total_match_count);
 			}
 		});
@@ -159,7 +179,9 @@ const MainPage: React.FC = () => {
 				{deckList.map((deck) => (
 					<Deck key={deck.id} deck={deck} />
 				))}
-				<StyledMoreDeckLink to="/deck/meta">전체 목록 보기</StyledMoreDeckLink>
+				<StyledMoreDeckLink to={`/deck/meta?version=${lastGamaVersion}`}>
+					전체 목록 보기
+				</StyledMoreDeckLink>
 			</StyledDeckContainer>
 		</StyledMainPage>
 	);
