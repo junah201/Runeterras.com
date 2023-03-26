@@ -6,6 +6,7 @@ import Footer from "./components/base/Footer";
 
 import MainPage from "./pages/MainPage";
 import MetaDecksPage from "./pages/MetaDecksPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const App: React.FC = () => {
 	return (
@@ -17,6 +18,9 @@ const App: React.FC = () => {
 				</Route>
 				<Route exact path="/deck/meta">
 					<MetaDecksPage />
+				</Route>
+				<Route path="*">
+					<NotFoundPage />
 				</Route>
 			</Switch>
 			<Footer />
