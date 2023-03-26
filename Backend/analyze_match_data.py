@@ -178,7 +178,6 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
 
         for single_meta_deck_code_analyze_key, single_meta_deck_code_analyze_value in value["single_meta_deck_code_analyze"].items():
             db_single_meta_deck_code_analyze = db.query(models.SingleMetaDeckCodeAnalyze).filter(
-                models.SingleMetaDeckCodeAnalyze.game_version == key[0],
                 models.SingleMetaDeckCodeAnalyze.single_meta_deck_analyze_id == db_single_meta_deck_analyze.id,
                 models.SingleMetaDeckCodeAnalyze.deck_code == single_meta_deck_code_analyze_key,
             ).first()
