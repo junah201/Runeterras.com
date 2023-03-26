@@ -238,12 +238,6 @@ class SingleMetaDeckCodeAnalyze(Base):
         nullable=False,
         comment="단일 덱 코드 분석 고유 번호",
     )
-    game_version = Column(
-        VARCHAR(30),
-        ForeignKey("game_version.game_version"),
-        nullable=False,
-        comment="데이터 버전 고유 번호",
-    )
     single_meta_deck_analyze_id = Column(
         INTEGER(unsigned=True),
         ForeignKey("single_meta_deck_analyze.id"),
@@ -287,12 +281,6 @@ class DoubleMetaDeckCodeAnalyze(Base):
         unique=True,
         nullable=False,
         comment="다중 덱 코드 분석 고유 번호",
-    )
-    game_version = Column(
-        VARCHAR(30),
-        ForeignKey("game_version.game_version"),
-        nullable=False,
-        comment="데이터 버전 고유 번호",
     )
     my_deck_id = Column(
         INTEGER(unsigned=True),
