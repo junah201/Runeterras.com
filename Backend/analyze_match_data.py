@@ -184,7 +184,6 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
 
             if not db_single_meta_deck_code_analyze:
                 db_single_meta_deck_code_analyze = models.SingleMetaDeckCodeAnalyze(
-                    game_version=key[0],
                     single_meta_deck_analyze_id=db_single_meta_deck_analyze.id,
                     deck_code=single_meta_deck_code_analyze_key,
                 )
