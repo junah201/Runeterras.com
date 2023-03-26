@@ -57,6 +57,14 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         }
     )
 
+    double_meta_deck_analyze = defaultdict(
+        lambda:
+        {
+            "win": 0,
+            "lose": 0,
+        }
+    )
+
     db = database.get_db()
     db_card_champions: List[models.Card] = db.query(models.Card).filter(
         models.Card.is_champion == True).all()
@@ -108,6 +116,11 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         if is_first_start:
             single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
                                      ]["first_start_lose_count"] += 1
+
+        double_meta_deck_analyze[(
+            row["game_version"], winner_new_deck_code, loser_new_deck_code)]["win"] += 1
+        double_meta_deck_analyze[(
+            row["game_version"], loser_new_deck_code, winner_new_deck_code)]["lose"] += 1
 
     for key, value in game_version_analyze.items():
         db_game_version = db.query(models.GameVersion).filter(
@@ -185,6 +198,34 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
             db.commit()
 
         db.commit()
+
+    for key, value in double_meta_deck_analyze.items():
+        db_winner_single_meta_deck_analyze: models.SingleMetaDeckAnalyze = db.query(models.SingleMetaDeckAnalyze).filter(
+            models.SingleMetaDeckAnalyze.game_version == key[0],
+            models.SingleMetaDeckAnalyze.deck_code == key[1],
+        ).first()
+
+        db_loser_single_meta_deck_analyze: models.SingleMetaDeckAnalyze = db.query(models.SingleMetaDeckAnalyze).filter(
+            models.SingleMetaDeckAnalyze.game_version == key[0],
+            models.SingleMetaDeckAnalyze.deck_code == key[2],
+        ).first()
+
+        db_double_meta_deck_analyze: Optional[models.DoubleMetaDeckCodeAnalyze] = db.query(models.DoubleMetaDeckCodeAnalyze).filter(
+            models.DoubleMetaDeckCodeAnalyze.my_deck_id == db_winner_single_meta_deck_analyze.id,
+            models.DoubleMetaDeckCodeAnalyze.opponent_deck_id == db_loser_single_meta_deck_analyze.id,
+        ).first()
+
+        if not db_double_meta_deck_analyze:
+            db_double_meta_deck_analyze = models.DoubleMetaDeckCodeAnalyze(
+                my_deck_id=db_winner_single_meta_deck_analyze.id,
+                opponent_deck_id=db_loser_single_meta_deck_analyze.id,
+            )
+            db.add(db_double_meta_deck_analyze)
+            db.commit()
+            db.refresh(db_double_meta_deck_analyze)
+
+        db_double_meta_deck_analyze.win_count += value["win"]
+        db_double_meta_deck_analyze.lose_count += value["lose"]
 
     db.commit()
 
