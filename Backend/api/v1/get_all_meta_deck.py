@@ -8,13 +8,21 @@ def lambda_handler(event, context):
     query_string_parameters = event.get("queryStringParameters", None)
     skip = 0
     limit = 10
+    game_version = None
 
     if query_string_parameters:
         skip = query_string_parameters.get("skip", 0)
         limit = query_string_parameters.get("limit", 10)
+        game_version = query_string_parameters.get("game_version", None)
 
     db = database.get_db()
-    db_meta_decks: List[models.SingleMetaDeckAnalyze] = db.query(models.SingleMetaDeckAnalyze).order_by(
+
+    if not game_version:
+        db_game_version: models.GameVersion = db.query(models.GameVersion).order_by(
+            models.GameVersion.created_at.desc()).first()
+        game_version = db_game_version.game_version
+
+    db_meta_decks: List[models.SingleMetaDeckAnalyze] = db.query(models.SingleMetaDeckAnalyze).filter(models.SingleMetaDeckAnalyze.game_version == game_version).order_by(
         (models.SingleMetaDeckAnalyze.win_count + models.SingleMetaDeckAnalyze.lose_count).desc()).offset(skip).limit(limit)
 
     db_meta_decks = db_meta_decks.all()
