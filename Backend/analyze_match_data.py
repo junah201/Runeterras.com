@@ -90,8 +90,8 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                  ]["single_meta_deck_code_analyze"][row["win_user_deck_code"]]["win"] += 1
 
-        is_first_start = (int(row["total_turn_count"]) % 2 == 1 and int(row["win_user_order_of_play"]) == 1) or (
-            int(row["total_turn_count"]) % 2 == 0 and int(row["win_user_order_of_play"]) == 0)
+        is_first_start = (int(row["total_turn_count"]) %
+                          2 == int(row["win_user_order_of_play"]))
         if is_first_start:
             single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                      ]["first_start_win_count"] += 1
@@ -106,8 +106,8 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                  ]["single_meta_deck_code_analyze"][row["loss_user_deck_code"]]["lose"] += 1
 
-        is_first_start = (int(row["total_turn_count"]) % 2 == 1 and int(row["loss_user_order_of_play"]) == 1) or (
-            int(row["total_turn_count"]) % 2 == 0 and int(row["loss_user_order_of_play"]) == 0)
+        is_first_start = (int(row["total_turn_count"]) %
+                          2 == int(row["loss_user_order_of_play"]))
         if is_first_start:
             single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
                                      ]["first_start_lose_count"] += 1
