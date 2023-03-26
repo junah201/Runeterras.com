@@ -96,9 +96,6 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
             single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                      ]["first_start_win_count"] += 1
 
-        single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
-                                 ]["turn"][row["total_turn_count"]]["win"] += 1
-
         single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
                                  ]["lose"] += 1
         single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
