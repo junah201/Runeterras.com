@@ -14,7 +14,7 @@ const StyledDeck = styled.div`
 	background-color: #262161;
 	border-radius: 10px;
 
-	width: 1250px;
+	width: min(1250px, 80vw);
 	margin: 12px 0;
 	overflow: hidden;
 
@@ -28,8 +28,7 @@ const StyledDeckPreview = styled.div`
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-evenly;
-	padding: 10px 40px;
-	width: 1250px;
+	width: min(1250px, 80vw);
 	height: 200px;
 `;
 
@@ -51,6 +50,10 @@ const StyledDeckRateInfo = styled.div`
 	flex-direction: column;
 
 	color: #ffffff;
+
+	& span {
+		font-size: 1rem;
+	}
 
 	& span + span {
 		margin-top: 8px;
@@ -80,8 +83,8 @@ const StyledFactionContainer = styled.div`
 const StyledDeckDivider = styled.div`
 	width: 1px;
 	height: 180px;
+	margin: 0 5px;
 	background-color: #534ac1;
-	margin: 0 50px;
 `;
 
 const StyledCardsContainer = styled.div`
@@ -89,14 +92,13 @@ const StyledCardsContainer = styled.div`
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
-	min-width: 315px;
 `;
 
 const StyledCard = styled.div`
 	overflow: hidden;
 
-	height: 150px;
-	width: 100px;
+	max-height: 150px;
+	max-width: 100px;
 
 	& + & {
 		margin-left: 8px;
@@ -128,7 +130,7 @@ const StyledDetailButton = styled.button`
 const StyledDetailContainer = styled.div`
 	display: flex;
 	flex-direction: column;
-	width: 1250px;
+	width: min(1250px, 80vw);
 	background-color: #262161;
 	padding: 30px;
 `;

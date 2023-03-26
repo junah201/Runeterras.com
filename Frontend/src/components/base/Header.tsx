@@ -19,7 +19,7 @@ const StyledHeader = styled.header`
 		& a {
 			color: #ffffff;
 			text-decoration: none;
-			font-size: 28px;
+			font-size: 1.5rem;
 			font-weight: bold;
 		}
 

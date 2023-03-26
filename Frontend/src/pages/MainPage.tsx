@@ -69,8 +69,7 @@ const StyledMoreDeckLink = styled(Link)`
 	background-color: #262161;
 	color: #ffffff;
 	padding: 12px 0;
-	max-width: 1250px;
-	min-width: 1250px;
+	width: min(1250px, 80vw);
 	border-radius: 10px;
 
 	display: flex;
@@ -80,14 +79,16 @@ const StyledMoreDeckLink = styled(Link)`
 `;
 
 const StyledDeckListInfo = styled.div`
-	width: 1250px;
+	width: min(1250px, 80vw);
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
+	width: min(1250px, 80vw);
 
 	& p {
 		color: #ffffff;
+		font-size: 1rem;
 	}
 `;
 

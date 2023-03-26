@@ -26,6 +26,7 @@ const StyledDeckInfoPreview = styled.div`
 
 	& p {
 		margin: 6px;
+		font-size: 1rem;
 	}
 
 	& button {
@@ -34,6 +35,7 @@ const StyledDeckInfoPreview = styled.div`
 		border: none;
 		color: #ffffff;
 		padding: 4px;
+		font-size: 1rem;
 		border-radius: 4px;
 		border: 1px solid #534ac1;
 	}
@@ -47,8 +49,8 @@ const StyledDeckCardPreview = styled.div`
 	& div {
 		display: flex;
 		overflow: hidden;
-		height: 120px;
-		width: 80px;
+		max-height: 120px;
+		max-width: 80px;
 
 		& img {
 			width: 100%;
