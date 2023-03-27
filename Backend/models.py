@@ -221,10 +221,10 @@ class SingleMetaDeckTurn(Base):
     )
 
     def __repr__(self):
-        return f"SingleMetaDeckFaction(id={self.id}, name={self.name}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id})"
+        return f"SingleMetaDeckFaction(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}) turn_count={self.turn_count} win_count={self.win_count} lose_count={self.lose_count})"
 
     def __str__(self):
-        return f"SingleMetaDeckFaction(id={self.id}, name={self.name}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id})"
+        return f"SingleMetaDeckFaction(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}) turn_count={self.turn_count} win_count={self.win_count} lose_count={self.lose_count})"
 
 
 class SingleMetaDeckCodeAnalyze(Base):
@@ -265,10 +265,10 @@ class SingleMetaDeckCodeAnalyze(Base):
     )
 
     def __repr__(self):
-        return f"SingleMetaDeckCodeAnalyze(id={self.id}, game_version={self.game_version}, deck_code={self.deck_code}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"SingleMetaDeckCodeAnalyze(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}, deck_code={self.deck_code}, win_count={self.win_count}, lose_count={self.lose_count})"
 
     def __str__(self):
-        return f"SingleMetaDeckCodeAnalyze(id={self.id}, game_version={self.game_version}, deck_code={self.deck_code}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"SingleMetaDeckCodeAnalyze(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}, deck_code={self.deck_code}, win_count={self.win_count}, lose_count={self.lose_count})"
 
 
 class DoubleMetaDeckCodeAnalyze(Base):
@@ -310,10 +310,10 @@ class DoubleMetaDeckCodeAnalyze(Base):
     )
 
     def __repr__(self):
-        return f"DoubleMetaDeckCodeAnalyze(id={self.id}, game_version={self.game_version}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"DoubleMetaDeckCodeAnalyze(id={self.id}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count})"
 
     def __str__(self):
-        return f"DoubleMetaDeckCodeAnalyze(id={self.id}, game_version={self.game_version}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"DoubleMetaDeckCodeAnalyze(id={self.id}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count})"
 
 
 class Card(Base):

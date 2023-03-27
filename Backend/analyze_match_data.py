@@ -65,7 +65,7 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         }
     )
 
-    db = database.get_db()
+    db = next(database.get_db())
     db_card_champions: List[models.Card] = db.query(models.Card).filter(
         models.Card.is_champion == True).all()
 

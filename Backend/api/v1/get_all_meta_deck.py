@@ -15,7 +15,7 @@ def lambda_handler(event, context):
         limit = query_string_parameters.get("limit", 10)
         game_version = query_string_parameters.get("game_version", None)
 
-    db = database.get_db()
+    db = next(database.get_db())
 
     if not game_version:
         db_game_version: models.GameVersion = db.query(models.GameVersion).order_by(

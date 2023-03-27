@@ -5,7 +5,7 @@ import json
 
 
 def lambda_handler(event, context):
-    db = database.get_db()
+    db = next(database.get_db())
     db_champion_cards: List[models.Card] = db.query(models.Card).filter(
         models.Card.is_champion == True).all()
 

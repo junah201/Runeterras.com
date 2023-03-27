@@ -39,7 +39,7 @@ def check_match() -> Dict:
         "rate limit": False,
     }
 
-    db = database.get_db()
+    db = next(database.get_db())
 
     db_master_players_puuid: List[models.Player] = db.query(models.Player) \
         .filter(models.Player.is_master == True, models.Player.puuid != None) \

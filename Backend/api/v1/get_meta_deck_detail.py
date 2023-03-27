@@ -22,7 +22,7 @@ def lambda_handler(event, context):
             )
         }
 
-    db = database.get_db()
+    db = next(database.get_db())
     db_meta_deck: models.SingleMetaDeckAnalyze = db.query(models.SingleMetaDeckAnalyze).filter(
         models.SingleMetaDeckAnalyze.id == deck_id).first()
 

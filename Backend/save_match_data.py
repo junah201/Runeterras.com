@@ -41,7 +41,7 @@ def get_match_data_datail() -> Tuple[List, Dict]:
     }
     match_datas = []
 
-    db = database.get_db()
+    db = next(database.get_db())
 
     init_res = requests.get(
         f"https://apac.api.riotgames.com/lor/match/v1/matches/{TEST_MATCH_ID}",

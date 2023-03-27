@@ -28,7 +28,7 @@ def check_new_player() -> Dict:
     new_player_puuid_sqs = sqs_client.get_queue_by_name(
         QueueName='LOR__new-palyer-puuid-queue')
 
-    db = database.get_db()
+    db = next(database.get_db())
 
     for _ in range(100):
         new_players = new_player_puuid_sqs.receive_messages(

@@ -36,7 +36,7 @@ def refresh_leaderboards() -> Dict:
     players: List[str] = [player["name"] for player in res.json()["players"]]
     log["total master players"] = len(players)
 
-    db = database.get_db()
+    db = next(database.get_db())
 
     db_master_players: List[models.Player] = db.query(models.Player).filter(
         models.Player.game_name.in_(players))
@@ -64,7 +64,6 @@ def refresh_leaderboards() -> Dict:
 
 
 def lambda_handler(event, context):
-
     log = refresh_leaderboards()
     log["end"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

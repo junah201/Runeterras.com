@@ -20,7 +20,7 @@ def lambda_handler(event, context):
             )
         }
 
-    db = database.get_db()
+    db = next(database.get_db())
     db_game_version: models.GameVersion = db.query(models.GameVersion).filter(
         models.GameVersion.game_version == gmae_version).first()
 
