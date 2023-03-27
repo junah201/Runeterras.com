@@ -30,7 +30,7 @@ jobs:
         run: |
           (cd ./venv/lib/python3.9/site-packages; zip -r9 ../../../../Build.zip . )
           (cd ./Backend; zip ../Build.zip -u -r check_match.py database.py models.py refresh_leaderboards.py save_match_data.py check_new_player.py analyze_match_data.py;)
-          (cd ./Backend/api/v1; zip ../../../Build.zip -u -r get_lastest_version_data.py get_all_version_data.py get_all_meta_deck.py get_meta_deck_detail.py get_version_data.py get_all_champion_card.py;)
+          (cd ./Backend/api/v1; zip ../../../Build.zip -u -r get_lastest_version_data.py get_all_version_data.py get_all_meta_deck.py get_meta_deck_detail.py get_version_data.py get_all_champion_card.py get_comparison_meta_deck_data_by_cards.py;)
 
       - name: Upload zip file artifact
         uses: actions/upload-artifact@v2
