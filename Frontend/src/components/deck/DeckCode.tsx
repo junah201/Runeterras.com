@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { getDeckFromCode } from "lor-deckcodes-ts";
+import Card from "../card/Card";
 
 const StyledDeck = styled.div`
 	display: flex;
@@ -45,19 +46,6 @@ const StyledDeckCardPreview = styled.div`
 	display: grid;
 	grid-template-columns: repeat(8, 1fr);
 	grid-template-rows: repeat(2, 1fr);
-
-	& div {
-		display: flex;
-		overflow: hidden;
-		max-height: 120px;
-		max-width: 80px;
-
-		& img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-		}
-	}
 `;
 
 const DeckCode: React.FC<{
@@ -82,14 +70,7 @@ const DeckCode: React.FC<{
 			</StyledDeckInfoPreview>
 			<StyledDeckCardPreview>
 				{cards.map((card) => {
-					return (
-						<div key={card.cardCode}>
-							<img
-								src={`${process.env.REACT_APP_CDN_URL}/images/card/ko/${card.cardCode}.png`}
-								alt={card.cardCode}
-							/>
-						</div>
-					);
+					return <Card key={card.cardCode} id={card.cardCode} />;
 				})}
 			</StyledDeckCardPreview>
 		</StyledDeck>

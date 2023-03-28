@@ -6,6 +6,7 @@ import axios from "axios";
 import WinLosePieChart from "../chart/WinLosePieChart";
 import TurnBarChart from "../chart/TurnBarChart";
 import DeckCode from "./DeckCode";
+import Card from "../card/Card";
 
 const StyledDeck = styled.div`
 	display: flex;
@@ -198,7 +199,7 @@ const Deck: React.FC<{ deck: IDeckInfo }> = (props) => {
 				<StyledDeckDivider />
 				<StyledCardsContainer>
 					{props.deck.champions.map((champion) => {
-						return (
+						return <Card id={champion} key={champion} />;
 							<StyledCard key={champion}>
 								<img
 									src={`${process.env.REACT_APP_CDN_URL}/images/card/ko/${champion}.png`}

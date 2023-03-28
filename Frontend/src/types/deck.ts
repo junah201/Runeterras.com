@@ -26,3 +26,14 @@ export interface ITurnDetailInfo {
 	win: number;
 	lose: number;
 }
+
+export interface IDeckCompareInfo {
+	id: number;
+	my_deck_id: number;
+	opponent_deck_id: number;
+	win_count: number;
+	lose_count: number;
+	first_start_win_count: number;
+	first_start_lose_count: number;
+	turn: { [key: string]: ITurnDetailInfo };
+}

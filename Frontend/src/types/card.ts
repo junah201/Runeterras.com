@@ -3,3 +3,12 @@ export interface Card {
 	name: string;
 	filename: string;
 }
+
+export interface ChampionCard {
+	id: string;
+	is_champion: boolean;
+	name: string;
+	region: string;
+	set: string;
+	type: string;
+}
