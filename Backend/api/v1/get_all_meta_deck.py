@@ -5,15 +5,10 @@ import json
 
 
 def lambda_handler(event, context):
-    query_string_parameters = event.get("queryStringParameters", None)
-    skip = 0
-    limit = 10
-    game_version = None
-
-    if query_string_parameters:
-        skip = query_string_parameters.get("skip", 0)
-        limit = query_string_parameters.get("limit", 10)
-        game_version = query_string_parameters.get("game_version", None)
+    skip = event.get("queryStringParameters", {}).get("skip", 0)
+    limit = event.get("queryStringParameters", {}).get("limit", 10)
+    game_version = event.get("queryStringParameters",
+                             {}).get("game_version", None)
 
     db = next(database.get_db())
 
