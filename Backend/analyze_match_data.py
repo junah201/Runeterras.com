@@ -79,7 +79,7 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
             row["win_user_deck_code"])
         winner_new_deck_code = LoRDeck(
             [
-                CardCodeAndCount(card.card_code, 1) for card in winner_deck.cards if card.card_code in all_card_champion_ids
+                CardCodeAndCount(card, 1) for card in sorted([card.card_code for card in winner_deck.cards]) if card in all_card_champion_ids
             ]
         ).encode()
 
@@ -87,7 +87,7 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
             row["loss_user_deck_code"])
         loser_new_deck_code = LoRDeck(
             [
-                CardCodeAndCount(card.card_code, 1) for card in loser_deck.cards if card.card_code in all_card_champion_ids
+                CardCodeAndCount(card, 1) for card in sorted([card.card_code for card in loser_deck.cards]) if card in all_card_champion_ids
             ]
         ).encode()
 

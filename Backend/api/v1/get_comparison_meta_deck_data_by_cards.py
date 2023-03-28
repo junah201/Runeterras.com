@@ -63,8 +63,8 @@ def lambda_handler(event, context):
             )
         }
 
-    my_deck_cards = my_deck_cards.split(",")
-    opponent_deck_cards = opponent_deck_cards.split(",")
+    my_deck_cards = sorted(my_deck_cards.split(","))
+    opponent_deck_cards = sorted(opponent_deck_cards.split(","))
 
     my_deck_code = LoRDeck(
         [
