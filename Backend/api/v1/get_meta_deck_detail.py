@@ -40,9 +40,9 @@ def lambda_handler(event, context):
             )
         }
 
-    db_turns: List[models.SingleMetaDeckTurn] = db.query(models.SingleMetaDeckTurn)\
-        .filter(models.SingleMetaDeckTurn.single_meta_deck_analyze_id == deck_id)\
-        .order_by(models.SingleMetaDeckTurn.turn_count)\
+    db_turns: List[models.SingleMetaDeckTurnAnalyze] = db.query(models.SingleMetaDeckTurnAnalyze)\
+        .filter(models.SingleMetaDeckTurnAnalyze.single_meta_deck_analyze_id == deck_id)\
+        .order_by(models.SingleMetaDeckTurnAnalyze.turn_count)\
         .all()
 
     tmp_turn_data = defaultdict(lambda: {

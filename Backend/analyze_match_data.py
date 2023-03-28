@@ -62,6 +62,15 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         {
             "win": 0,
             "lose": 0,
+            "turn": defaultdict(
+                lambda:
+                {
+                    "win": 0,
+                    "lose": 0,
+                }
+            ),
+            "first_start_win_count": 0,
+            "first_start_lose_count": 0,
         }
     )
 
@@ -98,9 +107,9 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                  ]["single_meta_deck_code_analyze"][row["win_user_deck_code"]]["win"] += 1
 
-        is_first_start = (int(row["total_turn_count"]) %
-                          2 == int(row["win_user_order_of_play"]))
-        if is_first_start:
+        is_winner_first_start = (int(row["total_turn_count"]) %
+                                 2 == int(row["win_user_order_of_play"]))
+        if is_winner_first_start:
             single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                      ]["first_start_win_count"] += 1
 
@@ -111,9 +120,9 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         single_meta_deck_analyze[(row["game_version"], winner_new_deck_code)
                                  ]["single_meta_deck_code_analyze"][row["loss_user_deck_code"]]["lose"] += 1
 
-        is_first_start = (int(row["total_turn_count"]) %
-                          2 == int(row["loss_user_order_of_play"]))
-        if is_first_start:
+        is_loser_first_start = (int(row["total_turn_count"]) %
+                                2 == int(row["loss_user_order_of_play"]))
+        if is_loser_first_start:
             single_meta_deck_analyze[(row["game_version"], loser_new_deck_code)
                                      ]["first_start_lose_count"] += 1
 
@@ -121,6 +130,18 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
             row["game_version"], winner_new_deck_code, loser_new_deck_code)]["win"] += 1
         double_meta_deck_analyze[(
             row["game_version"], loser_new_deck_code, winner_new_deck_code)]["lose"] += 1
+
+        if is_winner_first_start:
+            double_meta_deck_analyze[(
+                row["game_version"], winner_new_deck_code, loser_new_deck_code)]["first_start_win_count"] += 1
+        if is_loser_first_start:
+            double_meta_deck_analyze[(
+                row["game_version"], loser_new_deck_code, winner_new_deck_code)]["first_start_lose_count"] += 1
+
+        double_meta_deck_analyze[(
+            row["game_version"], winner_new_deck_code, loser_new_deck_code)]["turn"][row["total_turn_count"]]["win"] += 1
+        double_meta_deck_analyze[(
+            row["game_version"], loser_new_deck_code, winner_new_deck_code)]["turn"][row["total_turn_count"]]["lose"] += 1
 
     for key, value in game_version_analyze.items():
         db_game_version = db.query(models.GameVersion).filter(
@@ -158,13 +179,13 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         db_single_meta_deck_analyze.first_start_lose_count = value["first_start_lose_count"]
 
         for turn_key, turn_value in value["turn"].items():
-            db_single_meta_deck_turn_analyze = db.query(models.SingleMetaDeckTurn).filter(
-                models.SingleMetaDeckTurn.single_meta_deck_analyze_id == db_single_meta_deck_analyze.id,
-                models.SingleMetaDeckTurn.turn_count == turn_key,
+            db_single_meta_deck_turn_analyze = db.query(models.SingleMetaDeckTurnAnalyze).filter(
+                models.SingleMetaDeckTurnAnalyze.single_meta_deck_analyze_id == db_single_meta_deck_analyze.id,
+                models.SingleMetaDeckTurnAnalyze.turn_count == turn_key,
             ).first()
 
             if not db_single_meta_deck_turn_analyze:
-                db_single_meta_deck_turn_analyze = models.SingleMetaDeckTurn(
+                db_single_meta_deck_turn_analyze = models.SingleMetaDeckTurnAnalyze(
                     single_meta_deck_analyze_id=db_single_meta_deck_analyze.id,
                     turn_count=turn_key,
                 )
@@ -208,13 +229,13 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
             models.SingleMetaDeckAnalyze.deck_code == key[2],
         ).first()
 
-        db_double_meta_deck_analyze: Optional[models.DoubleMetaDeckCodeAnalyze] = db.query(models.DoubleMetaDeckCodeAnalyze).filter(
-            models.DoubleMetaDeckCodeAnalyze.my_deck_id == db_winner_single_meta_deck_analyze.id,
-            models.DoubleMetaDeckCodeAnalyze.opponent_deck_id == db_loser_single_meta_deck_analyze.id,
+        db_double_meta_deck_analyze: Optional[models.DoubleMetaDeckAnalyze] = db.query(models.DoubleMetaDeckAnalyze).filter(
+            models.DoubleMetaDeckAnalyze.my_deck_id == db_winner_single_meta_deck_analyze.id,
+            models.DoubleMetaDeckAnalyze.opponent_deck_id == db_loser_single_meta_deck_analyze.id,
         ).first()
 
         if not db_double_meta_deck_analyze:
-            db_double_meta_deck_analyze = models.DoubleMetaDeckCodeAnalyze(
+            db_double_meta_deck_analyze = models.DoubleMetaDeckAnalyze(
                 my_deck_id=db_winner_single_meta_deck_analyze.id,
                 opponent_deck_id=db_loser_single_meta_deck_analyze.id,
             )
@@ -224,6 +245,27 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
 
         db_double_meta_deck_analyze.win_count += value["win"]
         db_double_meta_deck_analyze.lose_count += value["lose"]
+        db_double_meta_deck_analyze.first_start_win_count = value["first_start_win_count"]
+        db_double_meta_deck_analyze.first_start_lose_count = value["first_start_lose_count"]
+
+        for turn_key, turn_value in value["turn"].items():
+            db_double_meta_deck_turn_analyze = db.query(models.DoubleMetaDeckTurnAnalyze).filter(
+                models.DoubleMetaDeckTurnAnalyze.double_meta_deck_analyze_id == db_double_meta_deck_analyze.id,
+                models.DoubleMetaDeckTurnAnalyze.turn_count == turn_key,
+            ).first()
+
+            if not db_double_meta_deck_turn_analyze:
+                db_double_meta_deck_turn_analyze = models.DoubleMetaDeckTurnAnalyze(
+                    double_meta_deck_analyze_id=db_double_meta_deck_analyze.id,
+                    turn_count=turn_key,
+                )
+                db.add(db_double_meta_deck_turn_analyze)
+                db.commit()
+                db.refresh(db_double_meta_deck_turn_analyze)
+
+            db_double_meta_deck_turn_analyze.win_count += turn_value["win"]
+            db_double_meta_deck_turn_analyze.lose_count += turn_value["lose"]
+            db.commit()
 
     db.commit()
 

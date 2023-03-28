@@ -182,8 +182,8 @@ class SingleMetaDeckAnalyze(Base):
         return f"SingleMetaDeckAnalyze(id={self.id}, game_version={self.game_version}, win_count={self.win_count}, lose_count={self.lose_count} first_start_win_count={self.first_start_win_count}, first_start_lose_count={self.first_start_lose_count})"
 
 
-class SingleMetaDeckTurn(Base):
-    __tablename__ = "single_meta_deck_turn"
+class SingleMetaDeckTurnAnalyze(Base):
+    __tablename__ = "single_meta_deck_turn_analyze"
     __table_args__ = {'mysql_collate': 'utf8_general_ci'}
 
     id = Column(
@@ -221,10 +221,10 @@ class SingleMetaDeckTurn(Base):
     )
 
     def __repr__(self):
-        return f"SingleMetaDeckFaction(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}) turn_count={self.turn_count} win_count={self.win_count} lose_count={self.lose_count})"
+        return f"SingleMetaDeckTurnAnalyze(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}, turn_count={self.turn_count}, win_count={self.win_count}, lose_count={self.lose_count})"
 
     def __str__(self):
-        return f"SingleMetaDeckFaction(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}) turn_count={self.turn_count} win_count={self.win_count} lose_count={self.lose_count})"
+        return f"SingleMetaDeckTurnAnalyze(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}, turn_count={self.turn_count}, win_count={self.win_count}, lose_count={self.lose_count})"
 
 
 class SingleMetaDeckCodeAnalyze(Base):
@@ -271,8 +271,8 @@ class SingleMetaDeckCodeAnalyze(Base):
         return f"SingleMetaDeckCodeAnalyze(id={self.id}, single_meta_deck_analyze_id={self.single_meta_deck_analyze_id}, deck_code={self.deck_code}, win_count={self.win_count}, lose_count={self.lose_count})"
 
 
-class DoubleMetaDeckCodeAnalyze(Base):
-    __tablename__ = "double_meta_deck_code_analyze"
+class DoubleMetaDeckAnalyze(Base):
+    __tablename__ = "double_meta_deck_analyze"
     __table_args__ = {'mysql_collate': 'utf8_general_ci'}
 
     id = Column(
@@ -308,12 +308,71 @@ class DoubleMetaDeckCodeAnalyze(Base):
         default=0,
         comment="패배 수",
     )
+    first_start_win_count = Column(
+        INTEGER(unsigned=True),
+        unique=False,
+        nullable=False,
+        default=0,
+        comment="선공 승리 수",
+    )
+    first_start_lose_count = Column(
+        INTEGER(unsigned=True),
+        unique=False,
+        nullable=False,
+        default=0,
+        comment="선공 패배 수",
+    )
 
     def __repr__(self):
-        return f"DoubleMetaDeckCodeAnalyze(id={self.id}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"DoubleMetaDeckAnalyze(id={self.id}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count}) first_start_win={self.first_start_win_count} first_start_lose={self.first_start_lose_count})"
 
     def __str__(self):
-        return f"DoubleMetaDeckCodeAnalyze(id={self.id}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count})"
+        return f"DoubleMetaDeckAnalyze(id={self.id}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count}) first_start_win={self.first_start_win_count} first_start_lose={self.first_start_lose_count})"
+
+
+class DoubleMetaDeckTurnAnalyze(Base):
+    __tablename__ = "double_meta_deck_turn_analyze"
+    __table_args__ = {'mysql_collate': 'utf8_general_ci'}
+
+    id = Column(
+        INTEGER(unsigned=True),
+        primary_key=True,
+        unique=True,
+        nullable=False,
+        comment="덱 턴 승수 분석 고유 번호",
+    )
+    double_meta_deck_analyze_id = Column(
+        INTEGER(unsigned=True),
+        ForeignKey("double_meta_deck_analyze.id"),
+        nullable=False,
+        comment="단일 덱 분석 고유 번호",
+    )
+    turn_count = Column(
+        INTEGER(unsigned=True),
+        unique=False,
+        nullable=False,
+        comment="턴 수",
+    )
+    win_count = Column(
+        INTEGER(unsigned=True),
+        unique=False,
+        nullable=False,
+        default=0,
+        comment="승리 수",
+    )
+    lose_count = Column(
+        INTEGER(unsigned=True),
+        unique=False,
+        nullable=False,
+        default=0,
+        comment="패배 수",
+    )
+
+    def __repr__(self):
+        return f"DoubleMetaDeckTurnAnalyze(id={self.id}, double_meta_deck_analyze_id={self.double_meta_deck_analyze_id}, turn_count={self.turn_count}, win_count={self.win_count}, lose_count={self.lose_count})"
+
+    def __str__(self):
+        return f"DoubleMetaDeckTurnAnalyze(id={self.id}, double_meta_deck_analyze_id={self.double_meta_deck_analyze_id}, turn_count={self.turn_count}, win_count={self.win_count}, lose_count={self.lose_count})"
 
 
 class Card(Base):
