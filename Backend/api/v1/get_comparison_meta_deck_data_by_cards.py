@@ -40,23 +40,14 @@ def lambda_handler(event, context):
             )
         }
 
-    if not game_version:
-        return {
-            "statusCode": "400",
-            "headers": {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            "body": json.dumps(
-                {
-                    "message": "game_version is required"
-                }
-            )
-        }
-
     db = next(database.get_db())
-    db_game_version: models.GameVersion = db.query(models.GameVersion).filter(
-        models.GameVersion.game_version == game_version).first()
+
+    if not game_version:
+        db_game_version: models.GameVersion = db.query(models.GameVersion).order_by(
+            models.GameVersion.created_at.desc()).first()
+    else:
+        db_game_version: models.GameVersion = db.query(models.GameVersion).filter(
+            models.GameVersion.game_version == game_version).first()
 
     if not db_game_version:
         return {
