@@ -6,6 +6,7 @@ import Footer from "./components/base/Footer";
 
 import MainPage from "./pages/MainPage";
 import MetaDecksPage from "./pages/MetaDecksPage";
+import MetaDeckComparePage from "./pages/MetaDeckComparePage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const App: React.FC = () => {
@@ -18,6 +19,9 @@ const App: React.FC = () => {
 				</Route>
 				<Route exact path="/deck/meta">
 					<MetaDecksPage />
+				</Route>
+				<Route exact path="/deck/compare">
+					<MetaDeckComparePage />
 				</Route>
 				<Route path="*">
 					<NotFoundPage />

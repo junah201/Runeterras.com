@@ -95,23 +95,6 @@ const StyledCardsContainer = styled.div`
 	justify-content: center;
 `;
 
-const StyledCard = styled.div`
-	overflow: hidden;
-
-	max-height: 150px;
-	max-width: 100px;
-
-	& + & {
-		margin-left: 8px;
-	}
-
-	& img {
-		height: 100%;
-		width: 100%;
-		object-fit: cover;
-	}
-`;
-
 const StyledDetailButton = styled.button`
 	width: 30px;
 	height: 30px;
@@ -200,13 +183,6 @@ const Deck: React.FC<{ deck: IDeckInfo }> = (props) => {
 				<StyledCardsContainer>
 					{props.deck.champions.map((champion) => {
 						return <Card id={champion} key={champion} />;
-							<StyledCard key={champion}>
-								<img
-									src={`${process.env.REACT_APP_CDN_URL}/images/card/ko/${champion}.png`}
-									alt={champion}
-								/>
-							</StyledCard>
-						);
 					})}
 				</StyledCardsContainer>
 				<StyledDeckDivider />
@@ -239,18 +215,49 @@ const Deck: React.FC<{ deck: IDeckInfo }> = (props) => {
 				<StyledDetailContainer>
 					<StyledDetailPieChartContainer>
 						<WinLosePieChart
-							win={props.deck.firstStartWinCount}
-							lose={props.deck.firstStartLoseCount}
-							title={"선공"}
+							title={"Win"}
+							data={[
+								{
+									id: "후공",
+									name: "후공",
+									value: props.deck.winCount - props.deck.firstStartWinCount,
+								},
+								{
+									id: "선공",
+									name: "선공",
+									value: props.deck.firstStartWinCount,
+								},
+							]}
 						/>
 						<WinLosePieChart
-							win={props.deck.winCount - props.deck.firstStartWinCount}
-							lose={props.deck.loseCount - props.deck.firstStartLoseCount}
-							title={"후공"}
+							title={"Lose"}
+							data={[
+								{
+									id: "후공",
+									name: "후공",
+									value: props.deck.loseCount - props.deck.firstStartLoseCount,
+								},
+								{
+									id: "선공",
+									name: "선공",
+									value: props.deck.firstStartLoseCount,
+								},
+							]}
 						/>
 					</StyledDetailPieChartContainer>
 					<StyledDetailPieChartContainer>
-						{detailInfo && <TurnBarChart data={detailInfo.turn} />}
+						{detailInfo && (
+							<TurnBarChart
+								data={Object.entries(detailInfo.turn).map((item: any) => {
+									return {
+										turn: item[0],
+										win: item[1].win,
+										lose: item[1].lose,
+									};
+								})}
+								keys={["win", "lose"]}
+							/>
+						)}
 					</StyledDetailPieChartContainer>
 					<StyledDetailDeckCodeContainer>
 						{detailInfo &&

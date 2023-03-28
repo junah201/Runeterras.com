@@ -1,7 +1,6 @@
 import React from "react";
 import { ResponsiveBar } from "@nivo/bar";
 import styled from "styled-components";
-import { ITurnDetailInfo } from "../../types/deck";
 
 const StyledTurnBarChart = styled.div`
 	display: flex;
@@ -23,22 +22,14 @@ const StyledTurnBarChart = styled.div`
 	}
 `;
 
-const TurnBarChart: React.FC<{ data: { [key: string]: ITurnDetailInfo } }> = (
-	props
-) => {
+const TurnBarChart: React.FC<{ data: any; keys: string[] }> = (props) => {
 	console.log(props.data);
 
 	return (
 		<StyledTurnBarChart>
 			<span>Turn</span>
 			<ResponsiveBar
-				data={Object.entries(props.data).map((item: any) => {
-					return {
-						turn: item[0],
-						win: item[1].win,
-						lose: item[1].lose,
-					};
-				})}
+				data={props.data}
 				theme={{
 					axis: {
 						legend: {
@@ -54,7 +45,7 @@ const TurnBarChart: React.FC<{ data: { [key: string]: ITurnDetailInfo } }> = (
 						},
 					},
 				}}
-				keys={["lose", "win"]}
+				keys={props.keys}
 				indexBy="turn"
 				margin={{ top: 50, right: 130, bottom: 80, left: 60 }}
 				padding={0.3}
@@ -71,7 +62,7 @@ const TurnBarChart: React.FC<{ data: { [key: string]: ITurnDetailInfo } }> = (
 					tickSize: 5,
 					tickPadding: 5,
 					tickRotation: 0,
-					legend: "win",
+					legend: "turn",
 					legendPosition: "middle",
 					legendOffset: 32,
 				}}

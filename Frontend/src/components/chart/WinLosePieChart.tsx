@@ -18,26 +18,14 @@ const StyledWinLosePieChart = styled.div`
 `;
 
 const WinLosePieChart: React.FC<{
-	win: number;
-	lose: number;
 	title: string;
+	data: object[];
 }> = (props) => {
 	return (
 		<StyledWinLosePieChart>
 			<span>{props.title}</span>
 			<ResponsivePie
-				data={[
-					{
-						id: "Lose",
-						name: "Lose",
-						value: props.lose,
-					},
-					{
-						id: "Win",
-						name: "Win",
-						value: props.win,
-					},
-				]}
+				data={props.data}
 				theme={{
 					labels: {
 						text: {
@@ -45,7 +33,7 @@ const WinLosePieChart: React.FC<{
 						},
 					},
 				}}
-				margin={{ top: 20, right: 80, bottom: 80, left: 80 }}
+				margin={{ top: 10, right: 80, bottom: 80, left: 80 }}
 				innerRadius={0.4}
 				padAngle={0.7}
 				cornerRadius={3}
