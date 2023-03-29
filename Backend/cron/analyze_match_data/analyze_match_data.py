@@ -175,8 +175,8 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
 
         db_single_meta_deck_analyze.win_count += value["win"]
         db_single_meta_deck_analyze.lose_count += value["lose"]
-        db_single_meta_deck_analyze.first_start_win_count = value["first_start_win_count"]
-        db_single_meta_deck_analyze.first_start_lose_count = value["first_start_lose_count"]
+        db_single_meta_deck_analyze.first_start_win_count += value["first_start_win_count"]
+        db_single_meta_deck_analyze.first_start_lose_count += value["first_start_lose_count"]
 
         for turn_key, turn_value in value["turn"].items():
             db_single_meta_deck_turn_analyze = db.query(models.SingleMetaDeckTurnAnalyze).filter(
@@ -245,8 +245,8 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
 
         db_double_meta_deck_analyze.win_count += value["win"]
         db_double_meta_deck_analyze.lose_count += value["lose"]
-        db_double_meta_deck_analyze.first_start_win_count = value["first_start_win_count"]
-        db_double_meta_deck_analyze.first_start_lose_count = value["first_start_lose_count"]
+        db_double_meta_deck_analyze.first_start_win_count += value["first_start_win_count"]
+        db_double_meta_deck_analyze.first_start_lose_count += value["first_start_lose_count"]
 
         for turn_key, turn_value in value["turn"].items():
             db_double_meta_deck_turn_analyze = db.query(models.DoubleMetaDeckTurnAnalyze).filter(
