@@ -46,7 +46,7 @@ def lambda_handler(event, context):
 
     if not game_version:
         db_game_version: models.GameVersion = db.query(models.GameVersion).order_by(
-            models.GameVersion.created_at.desc()).first()
+            models.GameVersion.game_version).first()
     else:
         db_game_version: models.GameVersion = db.query(models.GameVersion).filter(
             models.GameVersion.game_version == game_version).first()

@@ -6,7 +6,7 @@ import json
 def lambda_handler(event, context):
     db = next(database.get_db())
     db_game_version: models.GameVersion = db.query(models.GameVersion).order_by(
-        models.GameVersion.created_at.desc()).first()
+        models.GameVersion.game_version).first()
 
     return {
         "statusCode": "200",
