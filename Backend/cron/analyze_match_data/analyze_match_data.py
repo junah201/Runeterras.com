@@ -1,6 +1,6 @@
 import os
-import models
 import database
+import models
 from datetime import datetime, timedelta
 from typing import Dict, Union, List, Optional
 import boto3
@@ -179,23 +179,16 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         db_single_meta_deck_analyze.first_start_lose_count += value["first_start_lose_count"]
 
         for turn_key, turn_value in value["turn"].items():
-            db_single_meta_deck_turn_analyze = db.query(models.SingleMetaDeckTurnAnalyze).filter(
-                models.SingleMetaDeckTurnAnalyze.single_meta_deck_analyze_id == db_single_meta_deck_analyze.id,
-                models.SingleMetaDeckTurnAnalyze.turn_count == turn_key,
-            ).first()
+            if db_single_meta_deck_analyze.turns.get(turn_key) is None:
+                db_single_meta_deck_analyze.turns[turn_key] = {
+                    "W": 0,
+                    "L": 0,
+                }
 
-            if not db_single_meta_deck_turn_analyze:
-                db_single_meta_deck_turn_analyze = models.SingleMetaDeckTurnAnalyze(
-                    single_meta_deck_analyze_id=db_single_meta_deck_analyze.id,
-                    turn_count=turn_key,
-                )
-                db.add(db_single_meta_deck_turn_analyze)
-                db.commit()
-                db.refresh(db_single_meta_deck_turn_analyze)
+            db_single_meta_deck_analyze.turns[turn_key]["W"] += turn_value["win"]
+            db_single_meta_deck_analyze.turns[turn_key]["L"] += turn_value["lose"]
 
-            db_single_meta_deck_turn_analyze.win_count += turn_value["win"]
-            db_single_meta_deck_turn_analyze.lose_count += turn_value["lose"]
-            db.commit()
+        db.commit()
 
         for single_meta_deck_code_analyze_key, single_meta_deck_code_analyze_value in value["single_meta_deck_code_analyze"].items():
             db_single_meta_deck_code_analyze = db.query(models.SingleMetaDeckCodeAnalyze).filter(
@@ -249,23 +242,16 @@ def analyze_match_data(s3_bucket: str, s3_path: str) -> int:
         db_double_meta_deck_analyze.first_start_lose_count += value["first_start_lose_count"]
 
         for turn_key, turn_value in value["turn"].items():
-            db_double_meta_deck_turn_analyze = db.query(models.DoubleMetaDeckTurnAnalyze).filter(
-                models.DoubleMetaDeckTurnAnalyze.double_meta_deck_analyze_id == db_double_meta_deck_analyze.id,
-                models.DoubleMetaDeckTurnAnalyze.turn_count == turn_key,
-            ).first()
+            if db_double_meta_deck_analyze.turns.get(turn_key) is None:
+                db_double_meta_deck_analyze.turns[turn_key] = {
+                    "W": 0,
+                    "L": 0,
+                }
 
-            if not db_double_meta_deck_turn_analyze:
-                db_double_meta_deck_turn_analyze = models.DoubleMetaDeckTurnAnalyze(
-                    double_meta_deck_analyze_id=db_double_meta_deck_analyze.id,
-                    turn_count=turn_key,
-                )
-                db.add(db_double_meta_deck_turn_analyze)
-                db.commit()
-                db.refresh(db_double_meta_deck_turn_analyze)
+            db_double_meta_deck_analyze.turns[turn_key]["W"] += turn_value["win"]
+            db_double_meta_deck_analyze.turns[turn_key]["L"] += turn_value["lose"]
 
-            db_double_meta_deck_turn_analyze.win_count += turn_value["win"]
-            db_double_meta_deck_turn_analyze.lose_count += turn_value["lose"]
-            db.commit()
+        db.commit()
 
     db.commit()
 
