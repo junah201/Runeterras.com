@@ -32,10 +32,9 @@ def lambda_handler(event, context):
                              {}).get("game_version", None)
 
     db = next(database.get_db())
-
     if not game_version:
         db_game_version: models.GameVersion = db.query(models.GameVersion).order_by(
-            models.GameVersion.created_at.desc()).first()
+            models.GameVersion.game_version.desc()).first()
         game_version = db_game_version.game_version
 
     db_meta_decks: List[models.SingleMetaDeckAnalyze] = db.query(models.SingleMetaDeckAnalyze).filter(models.SingleMetaDeckAnalyze.game_version == game_version).order_by(
