@@ -140,25 +140,20 @@ def lambda_handler(event, context):
             )
         }
 
-    db_turns: List[models.DoubleMetaDeckTurnAnalyze] = db.query(models.DoubleMetaDeckTurnAnalyze)\
-        .filter(models.DoubleMetaDeckTurnAnalyze.double_meta_deck_analyze_id == db_double_meta_deck_analyze.id)\
-        .order_by(models.DoubleMetaDeckTurnAnalyze.turn_count)\
-        .all()
-
     tmp_turn_data = defaultdict(lambda: {
-        "win": 0,
-        "lose": 0,
+        "W": 0,
+        "L": 0,
     })
 
-    for turn in db_turns:
-        tmp_turn_data[turn.turn_count]["win"] += turn.win_count
-        tmp_turn_data[turn.turn_count]["lose"] += turn.lose_count
+    for idx, value in db_double_meta_deck_analyze.turns.items():
+        tmp_turn_data[idx]["W"] += value["W"]
+        tmp_turn_data[idx]["L"] += value["L"]
 
     turn_data = dict()
-    for turn_count in range(1, max(tmp_turn_data.keys()) + 1):
-        turn_data[turn_count] = {
-            "win": tmp_turn_data[turn_count]["win"],
-            "lose": tmp_turn_data[turn_count]["lose"],
+    for turn_count in range(1, max(len(tmp_turn_data.keys()), 50) + 1):
+        turn_data[str(turn_count)] = {
+            "W": tmp_turn_data[str(turn_count)]["W"],
+            "L": tmp_turn_data[str(turn_count)]["L"],
         }
 
     return {

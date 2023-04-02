@@ -22,4 +22,5 @@ def get_db():
     try:
         yield session
     finally:
+        print("db close")
         session.close()

@@ -23,8 +23,6 @@ const StyledTurnBarChart = styled.div`
 `;
 
 const TurnBarChart: React.FC<{ data: any; keys: string[] }> = (props) => {
-	console.log(props.data);
-
 	return (
 		<StyledTurnBarChart>
 			<span>Turn</span>
@@ -47,7 +45,7 @@ const TurnBarChart: React.FC<{ data: any; keys: string[] }> = (props) => {
 				}}
 				keys={props.keys}
 				indexBy="turn"
-				margin={{ top: 50, right: 130, bottom: 80, left: 60 }}
+				margin={{ top: 50, right: 70, bottom: 80, left: 60 }}
 				padding={0.3}
 				valueScale={{ type: "linear" }}
 				indexScale={{ type: "band", round: true }}
@@ -103,11 +101,6 @@ const TurnBarChart: React.FC<{ data: any; keys: string[] }> = (props) => {
 						itemTextColor: "#ffffff",
 					},
 				]}
-				barAriaLabel={function (e) {
-					return (
-						e.id + ": " + e.formattedValue + " in country: " + e.indexValue
-					);
-				}}
 				isInteractive={false}
 				enableGridY={false}
 			/>

@@ -2,7 +2,6 @@ import models
 import database
 from typing import List
 import json
-from collections import defaultdict
 
 
 def lambda_handler(event, context):
@@ -40,27 +39,6 @@ def lambda_handler(event, context):
             )
         }
 
-    db_turns: List[models.SingleMetaDeckTurnAnalyze] = db.query(models.SingleMetaDeckTurnAnalyze)\
-        .filter(models.SingleMetaDeckTurnAnalyze.single_meta_deck_analyze_id == deck_id)\
-        .order_by(models.SingleMetaDeckTurnAnalyze.turn_count)\
-        .all()
-
-    tmp_turn_data = defaultdict(lambda: {
-        "win": 0,
-        "lose": 0,
-    })
-
-    for turn in db_turns:
-        tmp_turn_data[turn.turn_count]["win"] += turn.win_count
-        tmp_turn_data[turn.turn_count]["lose"] += turn.lose_count
-
-    turn_data = dict()
-    for turn_count in range(1, max(tmp_turn_data.keys()) + 1):
-        turn_data[turn_count] = {
-            "win": tmp_turn_data[turn_count]["win"],
-            "lose": tmp_turn_data[turn_count]["lose"],
-        }
-
     db_deck_codes: List[models.SingleMetaDeckCodeAnalyze] = db.query(models.SingleMetaDeckCodeAnalyze)\
         .filter(models.SingleMetaDeckCodeAnalyze.single_meta_deck_analyze_id == deck_id)\
         .order_by(models.SingleMetaDeckCodeAnalyze.win_count.desc())\
@@ -86,7 +64,6 @@ def lambda_handler(event, context):
             {
                 "id": db_meta_deck.id,
                 "deck_code": deck_code_data,
-                "turn": turn_data,
             }
         )
     }

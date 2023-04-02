@@ -246,18 +246,18 @@ const Deck: React.FC<{ deck: IDeckInfo }> = (props) => {
 						/>
 					</StyledDetailPieChartContainer>
 					<StyledDetailPieChartContainer>
-						{detailInfo && (
+						{
 							<TurnBarChart
-								data={Object.entries(detailInfo.turn).map((item: any) => {
+								data={Object.entries(props.deck.turns).map((item: any, idx) => {
 									return {
 										turn: item[0],
-										win: item[1].win,
-										lose: item[1].lose,
+										win: item[1].W,
+										lose: item[1].L,
 									};
 								})}
 								keys={["win", "lose"]}
 							/>
-						)}
+						}
 					</StyledDetailPieChartContainer>
 					<StyledDetailDeckCodeContainer>
 						{detailInfo &&

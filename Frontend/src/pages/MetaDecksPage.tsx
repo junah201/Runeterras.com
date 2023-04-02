@@ -157,6 +157,7 @@ const MetaDecksPage: React.FC = () => {
 						firstStartLoseCount: deck.first_start_lose_count,
 						factions: [],
 						champions: [],
+						turns: deck.turns,
 					};
 					for (const card of decodedDeck) {
 						newDeck.champions.push(card.cardCode);

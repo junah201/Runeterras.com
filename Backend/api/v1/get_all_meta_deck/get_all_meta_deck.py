@@ -2,6 +2,27 @@ import models
 import database
 from typing import List
 import json
+from collections import defaultdict
+
+
+def turns_count(turns: dict) -> dict:
+    tmp_turn_data = defaultdict(lambda: {
+        "W": 0,
+        "L": 0,
+    })
+
+    for key, value in turns.items():
+        tmp_turn_data[key]["W"] += value["W"]
+        tmp_turn_data[key]["L"] += value["L"]
+
+    turn_data = dict()
+    for turn_count in range(1, max(len(tmp_turn_data.keys()), 50) + 1):
+        turn_data[str(turn_count)] = {
+            "W": tmp_turn_data[str(turn_count)]["W"],
+            "L": tmp_turn_data[str(turn_count)]["L"],
+        }
+
+    return turn_data
 
 
 def lambda_handler(event, context):
@@ -38,6 +59,7 @@ def lambda_handler(event, context):
                     "lose_count": db_meta_deck.lose_count,
                     "first_start_win_count": db_meta_deck.first_start_win_count,
                     "first_start_lose_count": db_meta_deck.first_start_lose_count,
+                    "turns": turns_count(db_meta_deck.turns),
                 } for db_meta_deck in db_meta_decks
             ]
         )

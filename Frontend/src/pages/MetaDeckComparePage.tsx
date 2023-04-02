@@ -312,8 +312,8 @@ const MetaDeckComparePage: React.FC = () => {
 									(item: any) => {
 										return {
 											turn: item[0],
-											"A win": item[1].win,
-											B_win: item[1].lose,
+											"A win": item[1].W,
+											B_win: item[1].L,
 										};
 									}
 								)}

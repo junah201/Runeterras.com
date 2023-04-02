@@ -118,7 +118,7 @@ const MainPage: React.FC = () => {
 	React.useEffect(() => {
 		axios({
 			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
-			params: { limit: 3, skip: 0 },
+			params: { limit: 3, skip: 0, game_version: lastGamaVersion },
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -141,6 +141,7 @@ const MainPage: React.FC = () => {
 						firstStartLoseCount: deck.first_start_lose_count,
 						factions: [],
 						champions: [],
+						turns: deck.turns,
 					};
 					for (const card of decodedDeck) {
 						newDeck.champions.push(card.cardCode);
@@ -157,7 +158,7 @@ const MainPage: React.FC = () => {
 				}
 			}
 		});
-	}, []);
+	}, [lastGamaVersion]);
 
 	return (
 		<StyledMainPage>

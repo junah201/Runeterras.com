@@ -8,6 +8,7 @@ export interface IDeckInfo {
 	winRate: number | string;
 	factions: string[];
 	champions: string[];
+	turns: { [key: string]: ITurnDetailInfo };
 }
 
 export interface IDeckDetailInfo {
@@ -23,8 +24,8 @@ export interface IDeckCodeDetailInfo {
 }
 
 export interface ITurnDetailInfo {
-	win: number;
-	lose: number;
+	W: number;
+	L: number;
 }
 
 export interface IDeckCompareInfo {
