@@ -1,12 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 import queryString from "query-string";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 
 import Deck from "../components/deck/Deck";
 import { IDeckInfo } from "../types/deck";
+import { IGameVersion } from "../types/gameVersion";
 
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import { getDeckFromCode } from "lor-deckcodes-ts";
 
@@ -38,6 +39,14 @@ dayjs.updateLocale("en", {
 
 const StyledMainPage = styled.main`
 	margin: 60px 0;
+`;
+
+const StyledGameVersionSelector = styled.select`
+	background-color: #262161;
+	font-size: 1rem;
+	color: #ffffff;
+	border: none;
+	padding: 4px;
 `;
 
 const StyledIntroductionContainer = styled.div`
@@ -94,13 +103,10 @@ const StyledDeckListInfo = styled.div`
 `;
 
 const MetaDecksPage: React.FC = () => {
-	const { search } = useLocation();
-	const values = queryString.parse(search);
-
-	const [gameVersion, setGameVersion] = React.useState(
-		values.version === undefined ? "lastest" : values.version
+	const [allGameVersions, setAllGameVersions] = React.useState<IGameVersion[]>(
+		[]
 	);
-	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
+	const [gameVersion, setGameVersion] = React.useState<string>("");
 	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("Loading...");
 	const [deckList, setDeckList] = React.useState<IDeckInfo[]>([]);
 
@@ -109,22 +115,24 @@ const MetaDecksPage: React.FC = () => {
 
 	React.useEffect(() => {
 		axios({
-			url: `${process.env.REACT_APP_API_URL}/game_version/${
-				values.version === undefined ? "lastest" : values.version
-			}`,
+			url: `${process.env.REACT_APP_API_URL}/game_version/all`,
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
 				Accept: "application/json",
 			},
-		}).then((res) => {
+		}).then((res: AxiosResponse) => {
 			if (res.status === 200) {
-				setGameVersion(res.data.game_version);
-				setLastUpdatedAt(dayjs.utc(res.data.updated_at).fromNow());
-				setTotalMatchDataCount(res.data.total_match_count);
+				const sortedGameVersions: IGameVersion[] = res.data.sort(
+					(a: IGameVersion, b: IGameVersion) =>
+						a.game_version < b.game_version ? 1 : -1
+				);
+				setGameVersion(sortedGameVersions[0].game_version);
+				setLastUpdatedAt(dayjs.utc(sortedGameVersions[0].updated_at).fromNow());
+				setAllGameVersions(sortedGameVersions);
 			}
 		});
-	}, [values.version]);
+	}, []);
 
 	React.useEffect(() => {
 		axios({
@@ -132,7 +140,7 @@ const MetaDecksPage: React.FC = () => {
 			params: {
 				limit: 10,
 				skip: page,
-				game_version: values.version === undefined ? null : values.version,
+				game_version: gameVersion,
 			},
 			method: "GET",
 			headers: {
@@ -175,7 +183,7 @@ const MetaDecksPage: React.FC = () => {
 				});
 			}
 		});
-	}, [values.version, page]);
+	}, [page, gameVersion]);
 
 	return (
 		<StyledMainPage>
@@ -185,12 +193,37 @@ const MetaDecksPage: React.FC = () => {
 			<StyledDeckContainer>
 				<StyledDeckListInfo>
 					<p>
-						Version : {gameVersion} ({totalMatchDataCount} Match)
+						Version :{" "}
+						<StyledGameVersionSelector
+							onChange={(e) => {
+								setGameVersion(e.target.value);
+								const tmp = allGameVersions.find(
+									(gameVersion) => gameVersion.game_version === e.target.value
+								) as IGameVersion;
+								setLastUpdatedAt(dayjs.utc(tmp.updated_at).fromNow());
+								setDeckList([]);
+								setPage(0);
+							}}
+						>
+							{allGameVersions
+								.sort((a, b) => (a.game_version < b.game_version ? 1 : -1))
+								.map((gameVersion) => {
+									return (
+										<option
+											key={gameVersion.game_version}
+											value={gameVersion.game_version}
+										>
+											{gameVersion.game_version} (
+											{gameVersion.total_match_count} Match)
+										</option>
+									);
+								})}
+						</StyledGameVersionSelector>
 					</p>
 					<p>Last Updated : {lastUpdatedAt}</p>
 				</StyledDeckListInfo>
 				{deckList.map((deck) => (
-					<Deck key={deck.id} deck={deck} />
+					<Deck key={`${deck.id}#${deck.totalMatchCount}`} deck={deck} />
 				))}
 				<StyledMoreDeckLink
 					onClick={() => {

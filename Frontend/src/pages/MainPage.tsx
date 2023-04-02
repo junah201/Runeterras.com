@@ -118,7 +118,7 @@ const MainPage: React.FC = () => {
 	React.useEffect(() => {
 		axios({
 			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
-			params: { limit: 3, skip: 0, game_version: lastGamaVersion },
+			params: { limit: 3, skip: 0 },
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -158,7 +158,7 @@ const MainPage: React.FC = () => {
 				}
 			}
 		});
-	}, [lastGamaVersion]);
+	}, []);
 
 	return (
 		<StyledMainPage>
@@ -181,7 +181,7 @@ const MainPage: React.FC = () => {
 				{deckList.map((deck) => (
 					<Deck key={deck.id} deck={deck} />
 				))}
-				<StyledMoreDeckLink to={`/deck/meta?version=${lastGamaVersion}`}>
+				<StyledMoreDeckLink to={`/deck/meta`}>
 					전체 목록 보기
 				</StyledMoreDeckLink>
 			</StyledDeckContainer>

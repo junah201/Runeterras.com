@@ -1,10 +1,11 @@
 import React from "react";
 import styled from "styled-components";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import SelectDeck from "../components/deck/SelectDeck";
 import { ChampionCard } from "../types/card";
 import { IDeckCompareInfo } from "../types/deck";
+import { IGameVersion } from "./../types/gameVersion";
 import WinLosePieChart from "../components/chart/WinLosePieChart";
 import TurnBarChart from "../components/chart/TurnBarChart";
 import Card from "../components/card/Card";
@@ -77,6 +78,20 @@ const StyledDecksInfoContainer = styled.div`
 	justify-content: space-around;
 `;
 
+const StyledGameVersionSelectorContainer = styled.div`
+	padding: 10px 0;
+	font-size: 1rem;
+	color: #ffffff;
+
+	& select {
+		background-color: #262161;
+		font-size: 1rem;
+		color: #ffffff;
+		border: none;
+		padding: 4px;
+	}
+`;
+
 const StyledDeckInfoContainer = styled.div`
 	display: flex;
 	flex-direction: column;
@@ -101,6 +116,11 @@ const StyledDeckContainer = styled.div`
 `;
 
 const MetaDeckComparePage: React.FC = () => {
+	const [allGameVersions, setAllGameVersions] = React.useState<IGameVersion[]>(
+		[]
+	);
+	const [selectedGameVersion, setSelectedGameVersion] =
+		React.useState<string>();
 	const [championCards, setChampionCards] = React.useState([]);
 	const [firstDeckChampionCards, setFirstDeckChampionCards] = React.useState<
 		ChampionCard[]
@@ -111,6 +131,22 @@ const MetaDeckComparePage: React.FC = () => {
 
 	const [metaDeckCompareData, setMetaDeckCompareData] =
 		React.useState<IDeckCompareInfo | null>(null);
+
+	React.useEffect(() => {
+		axios({
+			url: `${process.env.REACT_APP_API_URL}/game_version/all`,
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
+		}).then((res: AxiosResponse) => {
+			if (res.status === 200) {
+				setSelectedGameVersion(res.data[0].game_version);
+				setAllGameVersions(res.data);
+			}
+		});
+	}, []);
 
 	React.useEffect(() => {
 		axios({
@@ -134,6 +170,29 @@ const MetaDeckComparePage: React.FC = () => {
 
 	return (
 		<StyledMetaDeckComparePage>
+			<StyledGameVersionSelectorContainer>
+				Version :{" "}
+				<select
+					onChange={(e) => {
+						setSelectedGameVersion(e.target.value);
+						setMetaDeckCompareData(null);
+					}}
+				>
+					{allGameVersions
+						.sort((a, b) => (a.game_version < b.game_version ? 1 : -1))
+						.map((gameVersion) => {
+							return (
+								<option
+									key={gameVersion.game_version}
+									value={gameVersion.game_version}
+								>
+									{gameVersion.game_version} ({gameVersion.total_match_count}{" "}
+									Match)
+								</option>
+							);
+						})}
+				</select>
+			</StyledGameVersionSelectorContainer>
 			<StyledMetaDeckCompareWrapper>
 				<SelectDeck
 					deckChampionCards={firstDeckChampionCards}
@@ -166,6 +225,7 @@ const MetaDeckComparePage: React.FC = () => {
 								opponent_deck_cards: secondDeckChampionCards
 									.map((champion) => champion.id)
 									.join(","),
+								game_version: selectedGameVersion,
 							},
 							headers: {
 								"Content-Type": "application/json",
