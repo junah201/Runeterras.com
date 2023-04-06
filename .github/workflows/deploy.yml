@@ -39,7 +39,7 @@ jobs:
       - name: Upload zip file artifact
         uses: actions/upload-artifact@v3
         with:
-          name: lor-build
+          name: lor-build_${{ inputs.lambda_name }}
           path: Build_${{ inputs.lambda_name }}.zip
           if-no-files-found: error
 
@@ -50,7 +50,7 @@ jobs:
       - name: Install AWS CLI
         uses: unfor19/install-aws-cli-action@v1
         with:
-          version: 1
+          version: 2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -59,7 +59,7 @@ jobs:
       - name: Download Lambda Build.zip
         uses: actions/download-artifact@v3
         with:
-          name: lor-build
+          name: lor-build_${{ inputs.lambda_name }}
 
       - name: Upload to S3
         run: aws s3 cp Build_${{ inputs.lambda_name }}.zip s3://lor-build/Build_${{ inputs.lambda_name }}.zip
