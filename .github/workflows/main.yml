@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "Backend/**"
+      - ".github/**"
 
 jobs:
   Deploy:
