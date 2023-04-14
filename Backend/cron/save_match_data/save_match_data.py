@@ -7,6 +7,7 @@ import gzip
 from typing import Tuple, Dict, Optional, List
 import boto3
 import uuid
+import time
 
 RIOT_API_KEY = os.environ.get("RIOT_API_KEY")
 DISCORD_WEBHOOKS_CHECK_MATCH_LOG = os.environ.get(
@@ -29,6 +30,29 @@ header_row = [
     "total_turn_count",
 ]
 
+def request_match_data(match_id : str) -> requests.Response:
+    cnt = 0
+    while True:
+        cnt += 1
+        if cnt > 3:
+            return None
+        
+        match_res = requests.get(
+            f"https://apac.api.riotgames.com/lor/match/v1/matches/{match_id}",
+            headers={
+                "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+                "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
+                "X-Riot-Token": RIOT_API_KEY,
+            },
+            timeout=1
+        )
+
+        if match_res.status_code == 429:
+            time.sleep(int(match_res.headers["Retry-After"]) + 0.5)
+            continue
+
+        return match_res
+
 
 def get_match_data_datail() -> Tuple[List, Dict]:
     log = {
@@ -43,38 +67,13 @@ def get_match_data_datail() -> Tuple[List, Dict]:
 
     db = next(database.get_db())
 
-    init_res = requests.get(
-        f"https://apac.api.riotgames.com/lor/match/v1/matches/{TEST_MATCH_ID}",
-        headers={
-            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
-            "X-Riot-Token": RIOT_API_KEY,
-        },
-        timeout=3
-    )
-
-    # rate limit
-    if init_res.status_code == 429:
-        log["rate limit"] = True
-        return match_datas, log
-
-    # error
-    if init_res.status_code != 200:
-        log["error"] = init_res.text
-        return match_datas, log
-
-    max_number = int(init_res.headers["X-Method-Rate-Limit"].split(":")[0]) - int(
-        init_res.headers["X-Method-Rate-Limit-Count"].split(":")[0])
-
-    print("max number ", max_number)
-
     sqs_client = boto3.resource('sqs', region_name='ap-northeast-2')
     match_id_sqs = sqs_client.get_queue_by_name(
         QueueName='LOR__match-data-queue.fifo')
     new_player_puuid_sqs = sqs_client.get_queue_by_name(
         QueueName='LOR__new-palyer-puuid-queue')
 
-    for _ in range(0, max_number, 10):
+    for _ in range(10):
         match_ids = match_id_sqs.receive_messages(
             MessageAttributeNames=['All'],
             MaxNumberOfMessages=10,
@@ -90,29 +89,17 @@ def get_match_data_datail() -> Tuple[List, Dict]:
         for match_id in match_ids:
             print("match id", match_id.body)
 
-            match_res = requests.get(
-                f"https://apac.api.riotgames.com/lor/match/v1/matches/{match_id.body}",
-                headers={
-                    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-                    "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
-                    "X-Riot-Token": RIOT_API_KEY,
-                },
-                timeout=1
-            )
-
-            # rate limit
-            if match_res.status_code == 429:
-                print("rate limit")
-                log["rate limit"] = True
-                break
-
+            match_res = request_match_data(match_id.body)
             match_id.delete()
+
+            if not match_res:
+                continue
 
             # error
             if match_res.status_code != 200:
                 log["error"] += match_res.text + "\n"
                 print("error : ", match_res.text)
-                break
+                continue
 
             match_data = match_res.json()
 
@@ -191,7 +178,7 @@ def lambda_handler(event, context):
     success_color = 0x2ECC71
     error_color = 0xE74C3C
 
-    if log["rate limit"] or log["error"]:
+    if log["error"]:
         color = error_color
     else:
         color = success_color
@@ -206,7 +193,6 @@ def lambda_handler(event, context):
                 총 `{log["total save data count"]}`개의 매치 데이터를 저장했습니다.
 
                 error : {f"`{log['error']}`" if log["error"] else ""}
-                rate limit : `{log["rate limit"]}`
 
                 시작 : `{log["start"]}`
                 종료 : `{log["end"]}`
