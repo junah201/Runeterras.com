@@ -7,7 +7,7 @@ import { ChampionCard } from "../../types/card";
 const StyledSelectDeck = styled.div`
 	background-color: #262161;
 	width: 100%;
-	height: 290px;
+	height: 400px;
 	padding: 20px;
 
 	& + & {
@@ -79,10 +79,13 @@ const SelectDeck: React.FC<{
 								}}
 								key={championCard.id}
 							>
-								<img
-									src={`${process.env.REACT_APP_CDN_URL}/images/card/en/${championCard.id}-full.png`}
-									alt={championCard.name}
-								/>
+								<div>
+									<img
+										src={`${process.env.REACT_APP_CDN_URL}/images/card/en/${championCard.id}-full.png`}
+										alt={championCard.name}
+									/>
+								</div>
+								<span>{championCard.name}</span>
 							</ChampionSelect>
 						);
 					})}
@@ -99,6 +102,7 @@ const ChampionSelectContainer = styled.div`
 	display: grid;
 	grid-template-columns: repeat(10, 1fr);
 	grid-template-rows: repeat(3, 1fr);
+	grid-gap: 10px;
 `;
 
 interface Container {
@@ -107,21 +111,34 @@ interface Container {
 
 const ChampionSelect = styled.div<Container>`
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 	width: 100px;
-	height: 100px;
 	overflow: hidden;
-	border-radius: 50%;
 
-	border: ${(props) => (props.isSelect ? "5px solid #fbaf41" : "none")};
+	filter: ${(props) => (props.isSelect ? "none" : "grayscale(50%)")};
 
-	filter: ${(props) => (props.isSelect ? "none" : "grayscale(100%)")};
+	& div {
+		width: 100px;
+		height: 100px;
 
-	& img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
+		border: ${(props) => (props.isSelect ? "4.5px solid #fbaf41" : "none")};
+		border-radius: 50%;
+		overflow: hidden;
+
+		& img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+
+	& span {
+		margin-top: 5px;
+		color: ${(props) => (props.isSelect ? "#fbaf41" : "#fff")};
+		font-weight: ${(props) => (props.isSelect ? "bold" : "normal")};
+		text-align: center;
 	}
 `;
 

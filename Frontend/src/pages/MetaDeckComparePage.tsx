@@ -335,6 +335,9 @@ const MetaDeckComparePage: React.FC = () => {
 										value: metaDeckCompareData.first_start_win_count,
 									},
 								]}
+								total={
+									metaDeckCompareData.win_count + metaDeckCompareData.lose_count
+								}
 							/>
 							<WinLosePieChart
 								title={"Lose"}
@@ -364,6 +367,9 @@ const MetaDeckComparePage: React.FC = () => {
 										value: metaDeckCompareData.first_start_lose_count,
 									},
 								]}
+								total={
+									metaDeckCompareData.win_count + metaDeckCompareData.lose_count
+								}
 							/>
 						</StyledDetailPieChartContainer>
 						<StyledDetailPieChartContainer>

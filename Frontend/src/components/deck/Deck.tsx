@@ -228,6 +228,7 @@ const Deck: React.FC<{ deck: IDeckInfo }> = (props) => {
 									value: props.deck.firstStartWinCount,
 								},
 							]}
+							total={props.deck.winCount}
 						/>
 						<WinLosePieChart
 							title={"Lose"}
@@ -243,6 +244,7 @@ const Deck: React.FC<{ deck: IDeckInfo }> = (props) => {
 									value: props.deck.firstStartLoseCount,
 								},
 							]}
+							total={props.deck.loseCount}
 						/>
 					</StyledDetailPieChartContainer>
 					<StyledDetailPieChartContainer>

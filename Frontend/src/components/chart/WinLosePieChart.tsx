@@ -20,6 +20,7 @@ const StyledWinLosePieChart = styled.div`
 const WinLosePieChart: React.FC<{
 	title: string;
 	data: object[];
+	total: number;
 }> = (props) => {
 	return (
 		<StyledWinLosePieChart>
@@ -44,11 +45,10 @@ const WinLosePieChart: React.FC<{
 					modifiers: [["darker", 0.2]],
 				}}
 				tooltip={() => null}
-				arcLabel={(d) =>
-					`${d.value} (${((d.arc.angleDeg - d.arc.endAngle) / 3.6).toFixed(
-						1
-					)}%)`
-				}
+				arcLabel={(d) => {
+					const percent = ((d.value / props.total) * 100).toFixed(1);
+					return `${d.value} (${percent}%)`;
+				}}
 				arcLinkLabelsSkipAngle={10}
 				arcLinkLabelsTextColor="#ffffff"
 				arcLinkLabelsThickness={3}
