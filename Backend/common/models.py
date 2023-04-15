@@ -293,6 +293,11 @@ class DoubleMetaDeckAnalyze(Base):
         comment="턴별 분석",
     )
 
+    my_deck = relationship("SingleMetaDeckAnalyze", foreign_keys=[
+                           my_deck_id], lazy="joined")
+    opponent_deck = relationship("SingleMetaDeckAnalyze", foreign_keys=[
+                                 opponent_deck_id], lazy="joined")
+
     def __repr__(self):
         return f"DoubleMetaDeckAnalyze(id={self.id}, my_deck_id={self.my_deck_id}, opponent_deck_id={self.opponent_deck_id}, win_count={self.win_count}, lose_count={self.lose_count}) first_start_win={self.first_start_win_count} first_start_lose={self.first_start_lose_count})"
 

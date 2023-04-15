@@ -27,6 +27,7 @@ jobs:
             LOR__get-lastest-version-data,
             LOR__get-meta-deck-detail,
             LOR__get-version-data,
+            LOR__get-all-comparison-meta-deck,
           ]
         include:
           - lambda: LOR__check-match
@@ -53,6 +54,8 @@ jobs:
             path: ./Backend/api/v1/get_meta_deck_detail
           - lambda: LOR__get-version-data
             path: ./Backend/api/v1/get_version_data
+          - lambda: LOR__get-all-comparison-meta-deck
+            path: ./Backend/api/v1/get_all_comparison_meta_deck_data
 
     uses: junah201/Runeterras.com/.github/workflows/deploy.yml@main
     with:
