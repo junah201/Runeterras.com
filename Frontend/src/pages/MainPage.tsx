@@ -8,11 +8,13 @@ import { IDeckInfo } from "../types/deck";
 import axios from "axios";
 
 import { getDeckFromCode } from "lor-deckcodes-ts";
+import GameVersionSelector from "../components/common/GameVersionSelector";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
 import updateLocale from "dayjs/plugin/updateLocale";
+import { IGameVersion } from "../types/gameVersion";
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
 dayjs.extend(updateLocale);
@@ -93,32 +95,13 @@ const StyledDeckListInfo = styled.div`
 `;
 
 const MainPage: React.FC = () => {
-	const [totalMatchDataCount, setTotalMatchDataCount] = React.useState(0);
-	const [lastGamaVersion, setLastGamaVersion] = React.useState("Loading...");
-	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("Loading...");
+	const [gameVersion, setGamaVersion] = React.useState<IGameVersion>();
 	const [deckList, setDeckList] = React.useState<IDeckInfo[]>([]);
 
 	React.useEffect(() => {
 		axios({
-			url: `${process.env.REACT_APP_API_URL}/game_version/lastest`,
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-		}).then((res) => {
-			if (res.status === 200) {
-				setLastGamaVersion(res.data.game_version);
-				setLastUpdatedAt(dayjs.utc(res.data.updated_at).fromNow());
-				setTotalMatchDataCount(res.data.total_match_count);
-			}
-		});
-	}, []);
-
-	React.useEffect(() => {
-		axios({
 			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
-			params: { limit: 3, skip: 0 },
+			params: { limit: 3, skip: 0, game_version: gameVersion?.game_version },
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
@@ -126,6 +109,7 @@ const MainPage: React.FC = () => {
 			},
 		}).then((res) => {
 			if (res.status === 200) {
+				const newDeckList: IDeckInfo[] = [];
 				for (const deck of res.data) {
 					const decodedDeck = getDeckFromCode(deck.deck_code);
 					const newDeck: IDeckInfo = {
@@ -152,13 +136,13 @@ const MainPage: React.FC = () => {
 						),
 					];
 					newDeck.champions = decodedDeck.map((card) => card.cardCode);
-					setDeckList((prev) => {
-						return [...prev, newDeck];
-					});
+
+					newDeckList.push(newDeck);
 				}
+				setDeckList(newDeckList);
 			}
 		});
-	}, []);
+	}, [gameVersion]);
 
 	return (
 		<StyledMainPage>
@@ -169,14 +153,19 @@ const MainPage: React.FC = () => {
 					프로젝트입니다.
 				</p>
 				<p>
-					{totalMatchDataCount}개의 매치 데이터를 수집하여 통계를 분석하고
-					있습니다.
+					{gameVersion?.total_match_count}개의 매치 데이터를 수집하여 통계를
+					분석하고 있습니다.
 				</p>
 			</StyledIntroductionContainer>
 			<StyledDeckContainer>
 				<StyledDeckListInfo>
-					<p>Version : {lastGamaVersion}</p>
-					<p>Last Updated : {lastUpdatedAt}</p>
+					<GameVersionSelector setGameVersion={setGamaVersion} />
+					<p>
+						Last Updated :{" "}
+						{!!gameVersion
+							? dayjs.utc(gameVersion?.updated_at).fromNow()
+							: "Loading..."}
+					</p>
 				</StyledDeckListInfo>
 				{deckList.map((deck) => (
 					<Deck key={deck.id} deck={deck} />

@@ -1,13 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
-import axios from "axios";
 
 import { ChampionCard } from "../../types/card";
 
 const StyledSelectDeck = styled.div`
 	background-color: #262161;
 	width: 100%;
-	height: 400px;
 	padding: 20px;
 
 	& + & {
@@ -100,8 +98,7 @@ const StyledRegionSelectContainer = styled.div`
 
 const ChampionSelectContainer = styled.div`
 	display: grid;
-	grid-template-columns: repeat(10, 1fr);
-	grid-template-rows: repeat(3, 1fr);
+	grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
 	grid-gap: 10px;
 `;
 

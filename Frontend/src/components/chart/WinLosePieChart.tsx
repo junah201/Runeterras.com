@@ -34,7 +34,7 @@ const WinLosePieChart: React.FC<{
 						},
 					},
 				}}
-				margin={{ top: 10, right: 80, bottom: 80, left: 80 }}
+				margin={{ top: 20, right: 80, bottom: 80, left: 80 }}
 				innerRadius={0.4}
 				padAngle={0.7}
 				cornerRadius={3}

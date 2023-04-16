@@ -1,7 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import queryString from "query-string";
-import { useLocation, useHistory } from "react-router-dom";
 
 import Deck from "../components/deck/Deck";
 import { IDeckInfo } from "../types/deck";
@@ -10,6 +8,7 @@ import { IGameVersion } from "../types/gameVersion";
 import axios, { AxiosResponse } from "axios";
 
 import { getDeckFromCode } from "lor-deckcodes-ts";
+import GameVersionSelector from "../components/common/GameVersionSelector";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -39,14 +38,6 @@ dayjs.updateLocale("en", {
 
 const StyledMainPage = styled.main`
 	margin: 60px 0;
-`;
-
-const StyledGameVersionSelector = styled.select`
-	background-color: #262161;
-	font-size: 1rem;
-	color: #ffffff;
-	border: none;
-	padding: 4px;
 `;
 
 const StyledIntroductionContainer = styled.div`
@@ -103,51 +94,26 @@ const StyledDeckListInfo = styled.div`
 `;
 
 const MetaDecksPage: React.FC = () => {
-	const [allGameVersions, setAllGameVersions] = React.useState<IGameVersion[]>(
-		[]
-	);
-	const [gameVersion, setGameVersion] = React.useState<string>("");
-	const [lastUpdatedAt, setLastUpdatedAt] = React.useState("Loading...");
+	const [gameVersion, setGameVersion] = React.useState<IGameVersion>();
 	const [deckList, setDeckList] = React.useState<IDeckInfo[]>([]);
 
 	const SIZE = 10;
 	const [page, setPage] = React.useState(0);
 
-	React.useEffect(() => {
+	const fetch_deck_list = () => {
 		axios({
-			url: `${process.env.REACT_APP_API_URL}/game_version/all`,
+			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
+			params: {
+				limit: 10,
+				skip: page,
+				game_version: gameVersion?.game_version,
+			},
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
 				Accept: "application/json",
 			},
 		}).then((res: AxiosResponse) => {
-			if (res.status === 200) {
-				const sortedGameVersions: IGameVersion[] = res.data.sort(
-					(a: IGameVersion, b: IGameVersion) =>
-						a.game_version < b.game_version ? 1 : -1
-				);
-				setGameVersion(sortedGameVersions[0].game_version);
-				setLastUpdatedAt(dayjs.utc(sortedGameVersions[0].updated_at).fromNow());
-				setAllGameVersions(sortedGameVersions);
-			}
-		});
-	}, []);
-
-	React.useEffect(() => {
-		axios({
-			url: `${process.env.REACT_APP_API_URL}/deck/meta/all`,
-			params: {
-				limit: 10,
-				skip: page,
-				game_version: gameVersion,
-			},
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-		}).then((res) => {
 			if (res.status === 200) {
 				const newDeckList: IDeckInfo[] = [];
 				for (const deck of res.data) {
@@ -183,7 +149,17 @@ const MetaDecksPage: React.FC = () => {
 				});
 			}
 		});
-	}, [page, gameVersion]);
+	};
+
+	React.useEffect(() => {
+		setPage(0);
+		setDeckList([]);
+		fetch_deck_list();
+	}, [gameVersion]);
+
+	React.useEffect(() => {
+		fetch_deck_list();
+	}, [page]);
 
 	return (
 		<StyledMainPage>
@@ -192,35 +168,13 @@ const MetaDecksPage: React.FC = () => {
 			</StyledIntroductionContainer>
 			<StyledDeckContainer>
 				<StyledDeckListInfo>
+					<GameVersionSelector setGameVersion={setGameVersion} />
 					<p>
-						Version :{" "}
-						<StyledGameVersionSelector
-							onChange={(e) => {
-								setGameVersion(e.target.value);
-								const tmp = allGameVersions.find(
-									(gameVersion) => gameVersion.game_version === e.target.value
-								) as IGameVersion;
-								setLastUpdatedAt(dayjs.utc(tmp.updated_at).fromNow());
-								setDeckList([]);
-								setPage(0);
-							}}
-						>
-							{allGameVersions
-								.sort((a, b) => (a.game_version < b.game_version ? 1 : -1))
-								.map((gameVersion) => {
-									return (
-										<option
-											key={gameVersion.game_version}
-											value={gameVersion.game_version}
-										>
-											{gameVersion.game_version} (
-											{gameVersion.total_match_count} Match)
-										</option>
-									);
-								})}
-						</StyledGameVersionSelector>
+						Last Updated :{" "}
+						{!!gameVersion
+							? dayjs.utc(gameVersion?.updated_at).fromNow()
+							: "Loading..."}
 					</p>
-					<p>Last Updated : {lastUpdatedAt}</p>
 				</StyledDeckListInfo>
 				{deckList.map((deck) => (
 					<Deck key={`${deck.id}#${deck.totalMatchCount}`} deck={deck} />

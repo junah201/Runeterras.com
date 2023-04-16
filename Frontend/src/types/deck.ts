@@ -38,3 +38,14 @@ export interface IDeckCompareInfo {
 	first_start_lose_count: number;
 	turn: { [key: string]: ITurnDetailInfo };
 }
+
+export interface IDeckCompareDetailInfo {
+	id: number;
+	win_count: number;
+	lose_count: number;
+	first_start_win_count: number;
+	first_start_lose_count: number;
+	turns: { [key: string]: ITurnDetailInfo };
+	my_deck: IDeckCodeDetailInfo;
+	opponent_deck: IDeckCodeDetailInfo;
+}

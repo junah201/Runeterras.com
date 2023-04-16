@@ -9,6 +9,8 @@ import { IGameVersion } from "./../types/gameVersion";
 import WinLosePieChart from "../components/chart/WinLosePieChart";
 import TurnBarChart from "../components/chart/TurnBarChart";
 import Card from "../components/card/Card";
+import GameVersionSelector from "../components/common/GameVersionSelector";
+import { useHistory } from "react-router-dom";
 
 const StyledMetaDeckComparePage = styled.main`
 	display: flex;
@@ -116,11 +118,10 @@ const StyledDeckContainer = styled.div`
 `;
 
 const MetaDeckComparePage: React.FC = () => {
-	const [allGameVersions, setAllGameVersions] = React.useState<IGameVersion[]>(
-		[]
-	);
+	const history = useHistory();
+
 	const [selectedGameVersion, setSelectedGameVersion] =
-		React.useState<string>();
+		React.useState<IGameVersion>();
 	const [championCards, setChampionCards] = React.useState([]);
 	const [firstDeckChampionCards, setFirstDeckChampionCards] = React.useState<
 		ChampionCard[]
@@ -134,29 +135,13 @@ const MetaDeckComparePage: React.FC = () => {
 
 	React.useEffect(() => {
 		axios({
-			url: `${process.env.REACT_APP_API_URL}/game_version/all`,
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-			},
-		}).then((res: AxiosResponse) => {
-			if (res.status === 200) {
-				setSelectedGameVersion(res.data[0].game_version);
-				setAllGameVersions(res.data);
-			}
-		});
-	}, []);
-
-	React.useEffect(() => {
-		axios({
 			url: `${process.env.REACT_APP_API_URL}/card/champion/all`,
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",
 				Accept: "application/json",
 			},
-		}).then((res) => {
+		}).then((res: AxiosResponse) => {
 			if (res.status === 200) {
 				setChampionCards(res.data);
 				console.log(res.data);
@@ -170,29 +155,8 @@ const MetaDeckComparePage: React.FC = () => {
 
 	return (
 		<StyledMetaDeckComparePage>
-			<StyledGameVersionSelectorContainer>
-				Version :{" "}
-				<select
-					onChange={(e) => {
-						setSelectedGameVersion(e.target.value);
-						setMetaDeckCompareData(null);
-					}}
-				>
-					{allGameVersions
-						.sort((a, b) => (a.game_version < b.game_version ? 1 : -1))
-						.map((gameVersion) => {
-							return (
-								<option
-									key={gameVersion.game_version}
-									value={gameVersion.game_version}
-								>
-									{gameVersion.game_version} ({gameVersion.total_match_count}{" "}
-									Match)
-								</option>
-							);
-						})}
-				</select>
-			</StyledGameVersionSelectorContainer>
+			<GameVersionSelector setGameVersion={setSelectedGameVersion} />
+			<StyledGameVersionSelectorContainer></StyledGameVersionSelectorContainer>
 			<StyledMetaDeckCompareWrapper>
 				<SelectDeck
 					deckChampionCards={firstDeckChampionCards}
@@ -270,6 +234,13 @@ const MetaDeckComparePage: React.FC = () => {
 					}}
 				>
 					비교 결과 보기
+				</StyledSelectDeckButton>
+				<StyledSelectDeckButton
+					onClick={() => {
+						history.push("/deck/compare/all");
+					}}
+				>
+					비교 목록 보기
 				</StyledSelectDeckButton>
 				{metaDeckCompareData && (
 					<StyledDetailContainer>
