@@ -43,7 +43,9 @@ def check_match() -> Dict:
 
     db_master_players_puuid: List[models.Player] = db.query(models.Player) \
         .filter(models.Player.is_master == True, models.Player.puuid != None) \
-        .order_by(models.Player.last_checked_at.asc(), models.Player.last_matched_at.desc()).all()
+        .order_by(models.Player.last_checked_at.asc(), models.Player.last_matched_at.desc()) \
+        .limit(500) \
+        .all()
 
     new_match_ids = []
 
